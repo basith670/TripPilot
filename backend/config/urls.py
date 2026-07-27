@@ -40,6 +40,10 @@ urlpatterns = [
     ),
     path("api/v1/travel/", include("apps.travel.urls")),
     path("api/v1/", include("apps.trips.urls")),
+    path(
+    "api/v1/dashboard/",
+    include("apps.dashboard.urls"),
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(

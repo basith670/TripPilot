@@ -86,3 +86,99 @@ class Trip(models.Model):
             f"{self.source_airport.iata_code} → "
             f"{self.destination_airport.iata_code}"
         )
+    
+class ItineraryDay(models.Model):
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.CASCADE,
+        related_name="days",
+    )
+
+    day_number = models.PositiveIntegerField()
+
+    date = models.DateField()
+
+    title = models.CharField(
+        max_length=150,
+        default="Travel Day",
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["day_number"]
+        unique_together = ("trip", "day_number")
+
+    def __str__(self):
+        return f"{self.trip} - Day {self.day_number}"
+    
+class Activity(models.Model):
+
+    class Priority(models.TextChoices):
+        LOW = "LOW", "Low"
+        MEDIUM = "MEDIUM", "Medium"
+        HIGH = "HIGH", "High"
+
+    itinerary_day = models.ForeignKey(
+        ItineraryDay,
+        on_delete=models.CASCADE,
+        related_name="activities",
+    )
+
+    title = models.CharField(
+        max_length=200,
+    )
+
+    location = models.CharField(
+        max_length=200,
+        blank=True,
+    )
+
+    start_time = models.TimeField()
+
+    end_time = models.TimeField(
+        null=True,
+        blank=True,
+    )
+
+    estimated_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    priority = models.CharField(
+        max_length=10,
+        choices=Priority.choices,
+        default=Priority.MEDIUM,
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = [
+            "start_time",
+        ]
+
+    def __str__(self):
+        return self.title

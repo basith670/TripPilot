@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.travel",
     "apps.trips",
+    "apps.dashboard",
 ]
 
 MIDDLEWARE = [
