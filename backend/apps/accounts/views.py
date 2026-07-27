@@ -1,14 +1,21 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import UserProfile
+
 from .serializers import (
     RegisterSerializer,
     UserSerializer,
     ChangePasswordSerializer,
+    UserProfileSerializer,
 )
 
 
@@ -84,3 +91,13 @@ class ChangePasswordView(APIView):
             {"message": "Password changed successfully."},
             status=status.HTTP_200_OK,
         )
+    
+class UserProfileDetailView(RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        profile, created = UserProfile.objects.get_or_create(
+            user=self.request.user
+        )
+        return profile

@@ -67,3 +67,29 @@ class ChangePasswordSerializer(serializers.Serializer):
                 {"confirm_password": "Passwords do not match."}
             )
         return attrs
+    
+
+from .models import UserProfile
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "profile_picture",
+            "phone_number",
+            "date_of_birth",
+            "country",
+            "city",
+            "bio",
+            "preferred_currency",
+            "preferred_language",
+            "is_verified",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "is_verified",
+            "created_at",
+            "updated_at",
+        ]

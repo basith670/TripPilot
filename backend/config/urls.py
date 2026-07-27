@@ -38,6 +38,8 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
+    path("api/v1/travel/", include("apps.travel.urls")),
+    path("api/v1/", include("apps.trips.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(
