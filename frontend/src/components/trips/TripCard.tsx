@@ -27,7 +27,9 @@ import {
   }
   
   interface TripCardProps {
-    trip: Trip;
+    trip: any;
+    onEdit: (trip: any) => void;
+    onDelete: (trip: any) => void;
   }
   
   const statusColors: Record<string, string> = {
@@ -37,7 +39,11 @@ import {
     CANCELLED: "bg-red-100 text-red-700",
   };
   
-  export default function TripCard({ trip }: TripCardProps) {
+  export default function TripCard({
+    trip,
+    onEdit,
+    onDelete,
+  }: TripCardProps) {
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         {/* Route */}
@@ -99,15 +105,19 @@ import {
   
         {/* Actions */}
         <div className="mt-6 flex justify-end gap-3">
-          <button className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-blue-600 transition hover:bg-blue-50">
-            <FaEdit />
-            Edit
-          </button>
+        <button
+        onClick={() => onEdit(trip)}
+        className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
+        >
+        Edit
+        </button>
   
-          <button className="flex items-center gap-2 rounded-lg border border-red-600 px-4 py-2 text-red-600 transition hover:bg-red-50">
-            <FaTrash />
-            Delete
-          </button>
+        <button
+        onClick={() => onDelete(trip)}
+        className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+        >
+        Delete
+        </button>
         </div>
       </div>
     );

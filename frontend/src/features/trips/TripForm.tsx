@@ -10,11 +10,13 @@ import { Airport, getAirports } from "@/services/airport.service";
 interface TripFormProps {
   onSubmit: (data: TripFormData) => Promise<void> | void;
   loading?: boolean;
+  initialData?: Partial<TripFormData>;
 }
 
 export default function TripForm({
   onSubmit,
   loading = false,
+  initialData,
 }: TripFormProps) {
   const [airports, setAirports] = useState<Airport[]>([]);
 
@@ -38,23 +40,20 @@ export default function TripForm({
   } = useForm<TripFormData>({
     resolver: zodResolver(tripSchema),
     defaultValues: {
-      source_airport_id: undefined,
-      destination_airport_id: undefined,
-      departure_date: "",
-      return_date: "",
-      travelers: 1,
-      cabin_class: "ECONOMY",
-      budget: 0,
-      status: "PLANNING",
-      notes: "",
+      source_airport_id: initialData?.source_airport_id,
+      destination_airport_id: initialData?.destination_airport_id,
+      departure_date: initialData?.departure_date ?? "",
+      return_date: initialData?.return_date ?? "",
+      travelers: initialData?.travelers ?? 1,
+      cabin_class: initialData?.cabin_class ?? "ECONOMY",
+      budget: initialData?.budget ?? 0,
+      status: initialData?.status ?? "PLANNING",
+      notes: initialData?.notes ?? "",
     },
   });
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-5"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid gap-5 md:grid-cols-2">
         {/* Source Airport */}
         <div>
@@ -63,7 +62,7 @@ export default function TripForm({
           </label>
 
           <select
-            {...register("source_airport_id")}
+            {...register("source_airport_id", { valueAsNumber: true })}
             className="w-full rounded-lg border border-gray-300 p-3"
           >
             <option value="">Select Airport</option>
@@ -89,7 +88,7 @@ export default function TripForm({
           </label>
 
           <select
-            {...register("destination_airport_id")}
+            {...register("destination_airport_id", { valueAsNumber: true })}
             className="w-full rounded-lg border border-gray-300 p-3"
           >
             <option value="">Select Airport</option>
@@ -108,7 +107,7 @@ export default function TripForm({
           )}
         </div>
 
-        {/* Departure */}
+        {/* Departure Date */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Departure Date
@@ -127,7 +126,7 @@ export default function TripForm({
           )}
         </div>
 
-        {/* Return */}
+        {/* Return Date */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Return Date
@@ -155,7 +154,7 @@ export default function TripForm({
           <input
             type="number"
             min={1}
-            {...register("travelers")}
+            {...register("travelers", { valueAsNumber: true })}
             className="w-full rounded-lg border border-gray-300 p-3"
           />
 
@@ -175,7 +174,7 @@ export default function TripForm({
           <input
             type="number"
             min={0}
-            {...register("budget")}
+            {...register("budget", { valueAsNumber: true })}
             className="w-full rounded-lg border border-gray-300 p-3"
           />
 
@@ -240,7 +239,13 @@ export default function TripForm({
           disabled={loading}
           className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Creating..." : "Create Trip"}
+          {loading
+            ? initialData
+              ? "Updating..."
+              : "Creating..."
+            : initialData
+            ? "Update Trip"
+            : "Create Trip"}
         </button>
       </div>
     </form>

@@ -5,13 +5,24 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import TripCard from "@/components/trips/TripCard";
 import NewTripModal from "@/components/forms/NewTripModal";
+import EditTripModal from "@/components/forms/EditTripModal";
+import DeleteTripModal from "@/components/forms/DeleteTripModal";
 
 import { getTrips } from "@/services/trips.service";
 
 export default function TripsPage() {
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Create Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Edit Modal
+  const [selectedTrip, setSelectedTrip] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Delete Modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const fetchTrips = async () => {
     try {
@@ -29,6 +40,16 @@ export default function TripsPage() {
   useEffect(() => {
     fetchTrips();
   }, []);
+
+  const handleEdit = (trip: any) => {
+    setSelectedTrip(trip);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (trip: any) => {
+    setSelectedTrip(trip);
+    setIsDeleteModalOpen(true);
+  };
 
   return (
     <DashboardLayout>
@@ -67,15 +88,43 @@ export default function TripsPage() {
         ) : (
           <div className="grid gap-6">
             {trips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
       </div>
 
+      {/* Create */}
       <NewTripModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchTrips}
+      />
+
+      {/* Edit */}
+      <EditTripModal
+        isOpen={isEditModalOpen}
+        trip={selectedTrip}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTrip(null);
+        }}
+        onSuccess={fetchTrips}
+      />
+
+      {/* Delete */}
+      <DeleteTripModal
+        isOpen={isDeleteModalOpen}
+        trip={selectedTrip}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedTrip(null);
+        }}
         onSuccess={fetchTrips}
       />
     </DashboardLayout>
