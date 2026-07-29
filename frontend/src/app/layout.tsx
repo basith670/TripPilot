@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { Toaster } from "sonner";
+
 import ReduxProvider from "@/providers/ReduxProvider";
 
 export const metadata: Metadata = {
@@ -18,6 +20,13 @@ export default function RootLayout({
       <body>
         <ReduxProvider>
           {children}
+
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={3000}
+          />
         </ReduxProvider>
       </body>
     </html>

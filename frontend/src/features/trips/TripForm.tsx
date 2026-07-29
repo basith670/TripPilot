@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { tripSchema, TripFormData } from "./tripSchema";
@@ -37,7 +38,11 @@ export default function TripForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TripFormData>({
+  } = useForm<
+    z.input<typeof tripSchema>,
+    unknown,
+    z.output<typeof tripSchema>
+  >({
     resolver: zodResolver(tripSchema),
     defaultValues: {
       source_airport_id: initialData?.source_airport_id,
@@ -53,7 +58,10 @@ export default function TripForm({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-5"
+    >
       <div className="grid gap-5 md:grid-cols-2">
         {/* Source Airport */}
         <div>
@@ -62,13 +70,18 @@ export default function TripForm({
           </label>
 
           <select
-            {...register("source_airport_id", { valueAsNumber: true })}
+            {...register("source_airport_id", {
+              valueAsNumber: true,
+            })}
             className="w-full rounded-lg border border-gray-300 p-3"
           >
             <option value="">Select Airport</option>
 
             {airports.map((airport) => (
-              <option key={airport.id} value={airport.id}>
+              <option
+                key={airport.id}
+                value={airport.id}
+              >
                 {airport.iata_code} - {airport.name}
               </option>
             ))}
@@ -88,13 +101,18 @@ export default function TripForm({
           </label>
 
           <select
-            {...register("destination_airport_id", { valueAsNumber: true })}
+            {...register("destination_airport_id", {
+              valueAsNumber: true,
+            })}
             className="w-full rounded-lg border border-gray-300 p-3"
           >
             <option value="">Select Airport</option>
 
             {airports.map((airport) => (
-              <option key={airport.id} value={airport.id}>
+              <option
+                key={airport.id}
+                value={airport.id}
+              >
                 {airport.iata_code} - {airport.name}
               </option>
             ))}
@@ -154,7 +172,9 @@ export default function TripForm({
           <input
             type="number"
             min={1}
-            {...register("travelers", { valueAsNumber: true })}
+            {...register("travelers", {
+              valueAsNumber: true,
+            })}
             className="w-full rounded-lg border border-gray-300 p-3"
           />
 
@@ -174,7 +194,9 @@ export default function TripForm({
           <input
             type="number"
             min={0}
-            {...register("budget", { valueAsNumber: true })}
+            {...register("budget", {
+              valueAsNumber: true,
+            })}
             className="w-full rounded-lg border border-gray-300 p-3"
           />
 
@@ -196,8 +218,12 @@ export default function TripForm({
             className="w-full rounded-lg border border-gray-300 p-3"
           >
             <option value="ECONOMY">Economy</option>
-            <option value="PREMIUM_ECONOMY">Premium Economy</option>
-            <option value="BUSINESS">Business</option>
+            <option value="PREMIUM_ECONOMY">
+              Premium Economy
+            </option>
+            <option value="BUSINESS">
+              Business
+            </option>
             <option value="FIRST">First</option>
           </select>
         </div>
@@ -212,10 +238,18 @@ export default function TripForm({
             {...register("status")}
             className="w-full rounded-lg border border-gray-300 p-3"
           >
-            <option value="PLANNING">Planning</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="PLANNING">
+              Planning
+            </option>
+            <option value="CONFIRMED">
+              Confirmed
+            </option>
+            <option value="COMPLETED">
+              Completed
+            </option>
+            <option value="CANCELLED">
+              Cancelled
+            </option>
           </select>
         </div>
       </div>

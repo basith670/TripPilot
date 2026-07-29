@@ -1,11 +1,16 @@
 from django.db.models import Count, Sum, Q
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.trips.models import Trip
+from apps.trips.models import (
+    Trip,
+    ItineraryDay,
+    Activity,
+)
 
 
 class DashboardView(APIView):
@@ -13,6 +18,16 @@ class DashboardView(APIView):
 
     def get(self, request):
         trips = Trip.objects.filter(user=request.user)
+
+        trip_ids = trips.values_list("id", flat=True)
+
+        total_days = ItineraryDay.objects.filter(
+            trip_id__in=trip_ids
+        ).count()
+
+        total_activities = Activity.objects.filter(
+            itinerary_day__trip_id__in=trip_ids
+        ).count()
 
         stats = trips.aggregate(
             total_trips=Count("id"),
@@ -52,6 +67,15 @@ class DashboardView(APIView):
             .order_by("-created_at")[:5]
         )
 
+        monthly_trips = (
+            trips.annotate(
+                month=TruncMonth("departure_date")
+            )
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+
         return Response(
             {
                 "statistics": {
@@ -61,6 +85,8 @@ class DashboardView(APIView):
                     "completed_trips": stats["completed_trips"] or 0,
                     "cancelled_trips": stats["cancelled_trips"] or 0,
                     "total_budget": stats["total_budget"] or 0,
+                    "total_days": total_days,
+                    "total_activities": total_activities,
                 },
                 "next_trip": (
                     {
@@ -82,6 +108,13 @@ class DashboardView(APIView):
                         "budget": trip.budget,
                     }
                     for trip in recent_trips
+                ],
+                "monthly_trips": [
+                    {
+                        "month": item["month"].strftime("%b %Y"),
+                        "total": item["total"],
+                    }
+                    for item in monthly_trips
                 ],
             }
         )
