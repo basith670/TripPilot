@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "apps.travel",
     "apps.trips",
     "apps.dashboard",
+    "apps.ai",
+    "apps.flights",
 ]
 
 MIDDLEWARE = [
@@ -192,3 +194,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
+
+GEMINI_API_KEY = config("GEMINI_API_KEY")
+GEMINI_MODEL = config(
+    "GEMINI_MODEL",
+    default="gemini-2.5-flash-lite",
+)

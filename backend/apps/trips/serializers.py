@@ -26,6 +26,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "estimated_cost",
+            "category",
             "priority",
             "notes",
         )

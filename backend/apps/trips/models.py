@@ -86,7 +86,8 @@ class Trip(models.Model):
             f"{self.source_airport.iata_code} → "
             f"{self.destination_airport.iata_code}"
         )
-    
+
+
 class ItineraryDay(models.Model):
     trip = models.ForeignKey(
         Trip,
@@ -121,13 +122,44 @@ class ItineraryDay(models.Model):
 
     def __str__(self):
         return f"{self.trip} - Day {self.day_number}"
-    
+
+
 class Activity(models.Model):
 
     class Priority(models.TextChoices):
         LOW = "LOW", "Low"
         MEDIUM = "MEDIUM", "Medium"
         HIGH = "HIGH", "High"
+
+    class Category(models.TextChoices):
+        ACCOMMODATION = (
+            "ACCOMMODATION",
+            "Accommodation",
+        )
+        TRANSPORT = (
+            "TRANSPORT",
+            "Transport",
+        )
+        FOOD = (
+            "FOOD",
+            "Food",
+        )
+        ACTIVITIES = (
+            "ACTIVITIES",
+            "Activities",
+        )
+        SHOPPING = (
+            "SHOPPING",
+            "Shopping",
+        )
+        ENTERTAINMENT = (
+            "ENTERTAINMENT",
+            "Entertainment",
+        )
+        MISCELLANEOUS = (
+            "MISCELLANEOUS",
+            "Miscellaneous",
+        )
 
     itinerary_day = models.ForeignKey(
         ItineraryDay,
@@ -157,6 +189,12 @@ class Activity(models.Model):
         default=0,
     )
 
+    category = models.CharField(
+        max_length=30,
+        choices=Category.choices,
+        default=Category.ACTIVITIES,
+    )
+
     priority = models.CharField(
         max_length=10,
         choices=Priority.choices,
@@ -181,4 +219,7 @@ class Activity(models.Model):
         ]
 
     def __str__(self):
-        return self.title
+        return (
+            f"{self.title} "
+            f"({self.category})"
+        )
