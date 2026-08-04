@@ -14,6 +14,11 @@ import {
   FaCog,
 } from "react-icons/fa";
 
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const menuItems = [
   {
     name: "Dashboard",
@@ -60,73 +65,99 @@ const bottomItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-white">
-      <div className="border-b p-6">
-        <h1 className="text-2xl font-bold text-blue-600">
-          ✈️ TripPilot
-        </h1>
+    <aside
+      className={`
+        fixed inset-y-0 left-0 z-50
+        w-64 bg-white border-r shadow-lg
+        transform transition-transform duration-300 ease-in-out
+        lg:static lg:translate-x-0 lg:shadow-none
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+    >
+      <div className="flex h-full flex-col">
+        {/* Logo */}
+        <div className="border-b p-6">
+          <h1 className="text-2xl font-bold text-blue-600">
+            ✈️ TripPilot
+          </h1>
 
-        <p className="mt-1 text-sm text-gray-500">
-          AI Travel Planner
-        </p>
-      </div>
+          <p className="mt-1 text-sm text-gray-500">
+            AI Travel Planner
+          </p>
+        </div>
 
-      <nav className="flex-1 px-4 py-6">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
+        {/* Main Menu */}
+        <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <ul className="space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
 
-            const active = pathname === item.href;
+              const active =
+                pathname === item.href;
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 transition
-                  ${
-                    active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+              return (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all
+                    ${
+                      active
+                        ? "bg-blue-600 text-white shadow"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Icon className="text-lg" />
 
-      <div className="border-t p-4">
-        <ul className="space-y-2">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
+                    <span className="font-medium">
+                      {item.name}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
-            const active = pathname === item.href;
+        {/* Bottom Menu */}
+        <div className="border-t p-4">
+          <ul className="space-y-2">
+            {bottomItems.map((item) => {
+              const Icon = item.icon;
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 transition
-                  ${
-                    active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+              const active =
+                pathname === item.href;
+
+              return (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all
+                    ${
+                      active
+                        ? "bg-blue-600 text-white shadow"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Icon className="text-lg" />
+
+                    <span className="font-medium">
+                      {item.name}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </aside>
   );

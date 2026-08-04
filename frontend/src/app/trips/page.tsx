@@ -10,15 +10,17 @@ import DeleteTripModal from "@/components/forms/DeleteTripModal";
 
 import { getTrips } from "@/services/trips.service";
 
+import { Trip } from "@/types/trip";
+
 export default function TripsPage() {
-  const [trips, setTrips] = useState<any[]>([]);
+    const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Create Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Edit Modal
-  const [selectedTrip, setSelectedTrip] = useState<any>(null);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Delete Modal
@@ -41,12 +43,12 @@ export default function TripsPage() {
     fetchTrips();
   }, []);
 
-  const handleEdit = (trip: any) => {
+  const handleEdit = (trip: Trip) => {
     setSelectedTrip(trip);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (trip: any) => {
+  const handleDelete = (trip: Trip) => {
     setSelectedTrip(trip);
     setIsDeleteModalOpen(true);
   };

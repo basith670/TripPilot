@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 
 import TripForm from "@/features/trips/TripForm";
 import { TripFormData } from "@/features/trips/tripSchema";
@@ -38,13 +39,16 @@ export default function NewTripModal({
       });
 
       await onSuccess();
-
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Trip creation failed:", error);
 
-      if (error.response?.data) {
-        alert(JSON.stringify(error.response.data, null, 2));
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data) {
+          alert(JSON.stringify(error.response.data, null, 2));
+        } else {
+          alert("Failed to create trip.");
+        }
       } else {
         alert("Failed to create trip.");
       }
@@ -54,11 +58,12 @@ export default function NewTripModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
+      <div className="flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b p-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
+          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
             Create New Trip
           </h2>
 
@@ -70,13 +75,14 @@ export default function NewTripModal({
           </button>
         </div>
 
-        {/* Form */}
-        <div className="p-6">
+        {/* Scrollable Form */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <TripForm
             onSubmit={handleCreateTrip}
             loading={loading}
           />
         </div>
+
       </div>
     </div>
   );

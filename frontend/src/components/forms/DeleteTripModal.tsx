@@ -3,10 +3,11 @@
 import { useState } from "react";
 
 import { deleteTrip } from "@/services/trips.service";
+import { Trip } from "@/types/trip";
 
 interface DeleteTripModalProps {
   isOpen: boolean;
-  trip: any;
+  trip: Trip | null;
   onClose: () => void;
   onSuccess: () => Promise<void>;
 }

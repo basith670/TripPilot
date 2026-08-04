@@ -19,12 +19,14 @@ export default function AddDayModal({
 }: AddDayModalProps) {
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState({
+  const initialForm = {
     day_number: 1,
     date: "",
     title: "Travel Day",
     notes: "",
-  });
+  };
+
+  const [form, setForm] = useState(initialForm);
 
   if (!isOpen) return null;
 
@@ -39,6 +41,8 @@ export default function AddDayModal({
 
       await onSuccess();
 
+      setForm(initialForm);
+
       onClose();
     } catch (error) {
       console.error(error);
@@ -49,100 +53,132 @@ export default function AddDayModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-2xl">
-        <h2 className="mb-6 text-2xl font-bold">
-          Add Itinerary Day
-        </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
+      <div className="flex max-h-[95vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Header */}
 
-        <div className="space-y-5">
-          <div>
-            <label className="mb-2 block font-medium">
-              Day Number
-            </label>
+        <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
+          <h2 className="text-xl font-bold sm:text-2xl">
+            Add Itinerary Day
+          </h2>
 
-            <input
-              type="number"
-              value={form.day_number}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  day_number: Number(e.target.value),
-                })
-              }
-              className="w-full rounded-lg border p-3"
-            />
-          </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="text-3xl text-gray-500 transition hover:text-red-600 disabled:opacity-50"
+          >
+            ×
+          </button>
+        </div>
 
-          <div>
-            <label className="mb-2 block font-medium">
-              Date
-            </label>
+        {/* Scrollable Body */}
 
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  date: e.target.value,
-                })
-              }
-              className="w-full rounded-lg border p-3"
-            />
-          </div>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="space-y-5">
+            {/* Day Number */}
 
-          <div>
-            <label className="mb-2 block font-medium">
-              Title
-            </label>
+            <div>
+              <label className="mb-2 block font-medium">
+                Day Number
+              </label>
 
-            <input
-              value={form.title}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  title: e.target.value,
-                })
-              }
-              className="w-full rounded-lg border p-3"
-            />
-          </div>
+              <input
+                type="number"
+                min={1}
+                value={form.day_number}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    day_number: Number(e.target.value),
+                  })
+                }
+                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
 
-          <div>
-            <label className="mb-2 block font-medium">
-              Notes
-            </label>
+            {/* Date */}
 
-            <textarea
-              rows={4}
-              value={form.notes}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  notes: e.target.value,
-                })
-              }
-              className="w-full rounded-lg border p-3"
-            />
+            <div>
+              <label className="mb-2 block font-medium">
+                Date
+              </label>
+
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    date: e.target.value,
+                  })
+                }
+                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Title */}
+
+            <div>
+              <label className="mb-2 block font-medium">
+                Title
+              </label>
+
+              <input
+                value={form.title}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    title: e.target.value,
+                  })
+                }
+                placeholder="Travel Day"
+                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Notes */}
+
+            <div>
+              <label className="mb-2 block font-medium">
+                Notes
+              </label>
+
+              <textarea
+                rows={5}
+                value={form.notes}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    notes: e.target.value,
+                  })
+                }
+                placeholder="Additional notes..."
+                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="rounded-lg border px-5 py-2"
-          >
-            Cancel
-          </button>
+        {/* Footer */}
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
-          >
-            {loading ? "Creating..." : "Create Day"}
-          </button>
+        <div className="border-t px-4 py-4 sm:px-6">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="w-full rounded-lg border px-5 py-3 transition hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full rounded-lg bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+            >
+              {loading ? "Creating..." : "Create Day"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

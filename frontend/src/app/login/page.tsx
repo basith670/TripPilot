@@ -12,6 +12,7 @@ import { tokenStorage } from "@/lib/token";
 
 import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/authSlice";
+import axios from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,12 +49,16 @@ export default function LoginPage() {
       dispatch(setUser(user));
 
       router.push("/dashboard");
-    } catch (error: any) {
-      setServerError(
-        error?.response?.data?.detail ||
-          "Invalid username or password."
-      );
-    } finally {
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          setServerError(
+            error.response?.data?.detail ??
+              "Invalid username or password."
+          );
+        } else {
+          setServerError("Invalid username or password.");
+        }
+      } finally {
       setLoading(false);
     }
   };

@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 
 import TripForm from "@/features/trips/TripForm";
 import { TripFormData } from "@/features/trips/tripSchema";
 import { updateTrip } from "@/services/trips.service";
+import { Trip } from "@/types/trip";
 
 interface EditTripModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void>;
-  trip: any;
+  trip: Trip | null;
 }
 
 export default function EditTripModal({
@@ -23,30 +25,62 @@ export default function EditTripModal({
 
   if (!isOpen || !trip) return null;
 
-  const handleUpdateTrip = async (data: TripFormData) => {
+  const handleUpdateTrip = async (
+    data: TripFormData
+  ) => {
     try {
       setLoading(true);
 
       await updateTrip(trip.id, {
-        source_airport_id: data.source_airport_id,
-        destination_airport_id: data.destination_airport_id,
-        departure_date: data.departure_date,
-        return_date: data.return_date,
-        travelers: data.travelers,
-        cabin_class: data.cabin_class,
-        budget: data.budget,
-        status: data.status,
-        notes: data.notes ?? "",
+        source_airport_id:
+          data.source_airport_id,
+
+        destination_airport_id:
+          data.destination_airport_id,
+
+        departure_date:
+          data.departure_date,
+
+        return_date:
+          data.return_date,
+
+        travelers:
+          data.travelers,
+
+        cabin_class:
+          data.cabin_class,
+
+        budget:
+          data.budget,
+
+        status:
+          data.status,
+
+        notes:
+          data.notes ?? "",
       });
 
       await onSuccess();
 
       onClose();
-    } catch (error: any) {
-      console.error("Failed to update trip:", error);
+    } catch (error: unknown) {
+      console.error(
+        "Failed to update trip:",
+        error
+      );
 
-      if (error.response?.data) {
-        alert(JSON.stringify(error.response.data, null, 2));
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data) {
+          alert(
+            JSON.stringify(
+              error.response.data,
+              null,
+              2
+            )
+          );
+        } else {
+          alert("Failed to update trip.");
+        }
       } else {
         alert("Failed to update trip.");
       }
@@ -56,11 +90,15 @@ export default function EditTripModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
+
+      <div className="flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b p-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+
+        <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
+
+          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
             Edit Trip
           </h2>
 
@@ -70,27 +108,50 @@ export default function EditTripModal({
           >
             ×
           </button>
+
         </div>
 
-        {/* Form */}
-        <div className="p-6">
-        <TripForm
+        {/* Scrollable Form */}
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+
+          <TripForm
             initialData={{
-                source_airport_id: trip.source_airport.id,
-                destination_airport_id: trip.destination_airport.id,
-                departure_date: trip.departure_date,
-                return_date: trip.return_date,
-                travelers: trip.travelers,
-                cabin_class: trip.cabin_class,
-                budget: Number(trip.budget),
-                status: trip.status,
-                notes: trip.notes ?? "",
+              source_airport_id:
+                trip.source_airport.id,
+
+              destination_airport_id:
+                trip.destination_airport.id,
+
+              departure_date:
+                trip.departure_date,
+
+              return_date:
+                trip.return_date,
+
+              travelers:
+                trip.travelers,
+
+              cabin_class:
+                trip.cabin_class,
+
+              budget:
+                Number(trip.budget),
+
+              status:
+                trip.status,
+
+              notes:
+                trip.notes ?? "",
             }}
             onSubmit={handleUpdateTrip}
             loading={loading}
-            />
+          />
+
         </div>
+
       </div>
+
     </div>
   );
 }

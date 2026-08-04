@@ -60,9 +60,10 @@ export default function TripForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-5"
+      className="space-y-6"
     >
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
         {/* Source Airport */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -73,7 +74,7 @@ export default function TripForm({
             {...register("source_airport_id", {
               valueAsNumber: true,
             })}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="">Select Airport</option>
 
@@ -104,7 +105,7 @@ export default function TripForm({
             {...register("destination_airport_id", {
               valueAsNumber: true,
             })}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="">Select Airport</option>
 
@@ -125,7 +126,7 @@ export default function TripForm({
           )}
         </div>
 
-        {/* Departure Date */}
+        {/* Departure */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Departure Date
@@ -134,7 +135,7 @@ export default function TripForm({
           <input
             type="date"
             {...register("departure_date")}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
 
           {errors.departure_date && (
@@ -144,7 +145,7 @@ export default function TripForm({
           )}
         </div>
 
-        {/* Return Date */}
+        {/* Return */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Return Date
@@ -153,7 +154,7 @@ export default function TripForm({
           <input
             type="date"
             {...register("return_date")}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
 
           {errors.return_date && (
@@ -175,7 +176,7 @@ export default function TripForm({
             {...register("travelers", {
               valueAsNumber: true,
             })}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
 
           {errors.travelers && (
@@ -197,7 +198,7 @@ export default function TripForm({
             {...register("budget", {
               valueAsNumber: true,
             })}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
 
           {errors.budget && (
@@ -207,7 +208,7 @@ export default function TripForm({
           )}
         </div>
 
-        {/* Cabin Class */}
+        {/* Cabin */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Cabin Class
@@ -215,15 +216,11 @@ export default function TripForm({
 
           <select
             {...register("cabin_class")}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="ECONOMY">Economy</option>
-            <option value="PREMIUM_ECONOMY">
-              Premium Economy
-            </option>
-            <option value="BUSINESS">
-              Business
-            </option>
+            <option value="PREMIUM_ECONOMY">Premium Economy</option>
+            <option value="BUSINESS">Business</option>
             <option value="FIRST">First</option>
           </select>
         </div>
@@ -236,42 +233,40 @@ export default function TripForm({
 
           <select
             {...register("status")}
-            className="w-full rounded-lg border border-gray-300 p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
-            <option value="PLANNING">
-              Planning
-            </option>
-            <option value="CONFIRMED">
-              Confirmed
-            </option>
-            <option value="COMPLETED">
-              Completed
-            </option>
-            <option value="CANCELLED">
-              Cancelled
-            </option>
+            <option value="PLANNING">Planning</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
+
       </div>
 
       {/* Notes */}
+
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
           Notes
         </label>
 
         <textarea
-          rows={4}
+          rows={5}
           {...register("notes")}
-          className="w-full rounded-lg border border-gray-300 p-3"
+          className="w-full resize-none rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          placeholder="Add trip notes..."
         />
       </div>
 
-      <div className="flex justify-end">
+      {/* Submit */}
+
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {loading
             ? initialData
@@ -281,6 +276,7 @@ export default function TripForm({
             ? "Update Trip"
             : "Create Trip"}
         </button>
+
       </div>
     </form>
   );

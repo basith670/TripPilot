@@ -9,24 +9,7 @@ import {
   FaWallet,
 } from "react-icons/fa";
 
-interface Airport {
-  id: number;
-  name: string;
-  iata_code: string;
-}
-
-interface Trip {
-  id: number;
-  source_airport: Airport;
-  destination_airport: Airport;
-  departure_date: string;
-  return_date: string;
-  travelers: number;
-  cabin_class: string;
-  budget: string;
-  status: string;
-  notes: string;
-}
+import { Trip } from "@/types/trip";
 
 interface TripCardProps {
   trip: Trip;
@@ -56,7 +39,8 @@ export default function TripCard({
         {/* Route */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">
-            {trip.source_airport.iata_code} → {trip.destination_airport.iata_code}
+            {trip.source_airport.iata_code} →{" "}
+            {trip.destination_airport.iata_code}
           </h2>
 
           <span
@@ -69,7 +53,8 @@ export default function TripCard({
         </div>
 
         <p className="mt-1 text-gray-500">
-          {trip.source_airport.name} → {trip.destination_airport.name}
+          {trip.source_airport.name} →{" "}
+          {trip.destination_airport.name}
         </p>
 
         {/* Details */}
@@ -98,7 +83,7 @@ export default function TripCard({
           <div className="flex items-center gap-2">
             <FaWallet className="text-purple-600" />
             <span className="font-semibold text-gray-900">
-              ₹{Number(trip.budget).toLocaleString("en-IN")}
+              ₹{trip.budget.toLocaleString("en-IN")}
             </span>
           </div>
         </div>

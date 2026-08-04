@@ -14,23 +14,17 @@ import {
 
 import { toast } from "sonner";
 
+import { Activity } from "@/types/itinerary";
+
 interface Props {
   dayId: number;
+  onActivityChanged?: () => void;
 }
 
-interface Activity {
-  id: number;
-  itinerary_day: number;
-  title: string;
-  location: string;
-  start_time: string;
-  end_time?: string;
-  estimated_cost: string;
-  priority: string;
-  notes: string;
-}
-
-export default function ActivitySection({ dayId }: Props) {
+export default function ActivitySection({
+  dayId,
+  onActivityChanged,
+}: Props) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +32,9 @@ export default function ActivitySection({ dayId }: Props) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
+  const [selectedActivityId, setSelectedActivityId] =
+    useState<number | null>(null);
+
   const [deleting, setDeleting] = useState(false);
 
   const [selectedActivity, setSelectedActivity] =
@@ -71,14 +67,16 @@ export default function ActivitySection({ dayId }: Props) {
 
       const data = await getActivities(dayId);
 
-      // Sort by start time
-      data.sort((a: Activity, b: Activity) =>
+      data.sort((a, b) =>
         a.start_time.localeCompare(b.start_time)
       );
 
       setActivities(data);
     } catch (error) {
-      console.error("Failed to load activities:", error);
+      console.error(
+        "Failed to load activities:",
+        error
+      );
     } finally {
       setLoading(false);
     }
@@ -90,28 +88,35 @@ export default function ActivitySection({ dayId }: Props) {
 
   const handleDelete = async () => {
     if (selectedActivityId === null) return;
-  
+
     try {
       setDeleting(true);
-  
+
       await deleteActivity(selectedActivityId);
-  
-      toast.success("Activity deleted successfully.");
-  
+
+      toast.success(
+        "Activity deleted successfully."
+      );
+
       setDeleteDialogOpen(false);
       setSelectedActivityId(null);
-  
-      fetchActivities();
+
+      await fetchActivities();
+
+      onActivityChanged?.();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete activity.");
+
+      toast.error(
+        "Failed to delete activity."
+      );
     } finally {
       setDeleting(false);
     }
   };
 
-  const filteredActivities = activities.filter(
-    (activity) => {
+  const filteredActivities =
+    activities.filter((activity) => {
       const matchesSearch =
         activity.title
           .toLowerCase()
@@ -122,55 +127,72 @@ export default function ActivitySection({ dayId }: Props) {
 
       const matchesPriority =
         priorityFilter === "ALL" ||
-        activity.priority === priorityFilter;
+        activity.priority ===
+          priorityFilter;
 
-      return matchesSearch && matchesPriority;
-    }
-  );
+      return (
+        matchesSearch &&
+        matchesPriority
+      );
+    });
 
   return (
     <>
       <div>
-        <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h4 className="font-semibold text-gray-800">
             Activities
           </h4>
 
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-green-600 px-3 py-2 text-sm text-white transition hover:bg-green-700"
+            onClick={() =>
+              setIsModalOpen(true)
+            }
+            className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-green-700 sm:w-auto"
           >
             + Add Activity
           </button>
         </div>
 
         {/* Search & Filter */}
-        <div className="mb-6 flex flex-col gap-3 md:flex-row">
+
+        <div className="mb-6 flex flex-col gap-3 lg:flex-row">
           <input
             type="text"
             placeholder="🔍 Search activities..."
             value={search}
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none lg:flex-1"
           />
 
           <select
             value={priorityFilter}
             onChange={(e) =>
-              setPriorityFilter(e.target.value)
+              setPriorityFilter(
+                e.target.value
+              )
             }
-            className="rounded-lg border border-gray-300 px-4 py-2"
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 lg:w-56"
           >
             <option value="ALL">
               All Priorities
             </option>
-            <option value="HIGH">High</option>
+
+            <option value="HIGH">
+              High
+            </option>
+
             <option value="MEDIUM">
               Medium
             </option>
-            <option value="LOW">Low</option>
+
+            <option value="LOW">
+              Low
+            </option>
           </select>
         </div>
 
@@ -178,19 +200,25 @@ export default function ActivitySection({ dayId }: Props) {
           <p className="text-sm text-gray-500">
             Loading activities...
           </p>
-        ) : filteredActivities.length === 0 ? (
+        ) : filteredActivities.length ===
+          0 ? (
           <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">
-            No matching activities found.
+            No matching activities
+            found.
           </div>
         ) : (
           <div className="space-y-6">
             {filteredActivities.map(
-              (activity, index) => (
+              (
+                activity,
+                index
+              ) => (
                 <div
-                  key={activity.id}
-                  className="relative flex gap-5"
+                  key={
+                    activity.id
+                  }
+                  className="relative flex items-start gap-3 sm:gap-5"
                 >
-                  {/* Timeline */}
                   <div className="flex flex-col items-center">
                     <div className="z-10 h-4 w-4 rounded-full bg-blue-600"></div>
 
@@ -201,22 +229,26 @@ export default function ActivitySection({ dayId }: Props) {
                     )}
                   </div>
 
-                  {/* Card */}
-                  <div className="mb-4 flex-1 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-lg">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="mb-4 min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg sm:p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div>
-                        <h5 className="text-lg font-semibold text-gray-900">
-                          {activity.title}
+                      <h5 className="break-words text-lg font-semibold text-gray-900">
+                          {
+                            activity.title
+                          }
                         </h5>
 
                         {activity.location && (
-                          <p className="mt-1 text-sm text-gray-500">
-                            📍 {activity.location}
+                          <p className="mt-1 break-words text-sm text-gray-500">
+                            📍{" "}
+                            {
+                              activity.location
+                            }
                           </p>
                         )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                         <button
                           onClick={() => {
                             setSelectedActivity(
@@ -226,26 +258,33 @@ export default function ActivitySection({ dayId }: Props) {
                               true
                             );
                           }}
-                          className="rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
+                          className="w-full rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 sm:w-auto"
                         >
                           Edit
                         </button>
 
                         <button
                           onClick={() => {
-                            setSelectedActivityId(activity.id);
-                            setDeleteDialogOpen(true);
+                            setSelectedActivityId(
+                              activity.id
+                            );
+                            setDeleteDialogOpen(
+                              true
+                            );
                           }}
-                          className="rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
+                          className="w-full rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 sm:w-auto"
                         >
                           Delete
                         </button>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                    <div className="mt-4 flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                       <span>
-                        🕒 {activity.start_time}
+                        🕒{" "}
+                        {
+                          activity.start_time
+                        }
                         {activity.end_time &&
                           ` - ${activity.end_time}`}
                       </span>
@@ -254,21 +293,25 @@ export default function ActivitySection({ dayId }: Props) {
                         💰 ₹
                         {Number(
                           activity.estimated_cost
-                        ).toLocaleString("en-IN")}
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
                       </span>
 
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getPriorityBadge(
+                    className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${getPriorityBadge(activity.priority)}`}
+                  >
+                        {
                           activity.priority
-                        )}`}
-                      >
-                        {activity.priority}
+                        }
                       </span>
                     </div>
 
                     {activity.notes && (
-                      <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                        {activity.notes}
+                      <div className="mt-4 break-words rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                        {
+                          activity.notes
+                        }
                       </div>
                     )}
                   </div>
@@ -282,8 +325,13 @@ export default function ActivitySection({ dayId }: Props) {
       <AddActivityModal
         isOpen={isModalOpen}
         dayId={dayId}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchActivities}
+        onClose={() =>
+          setIsModalOpen(false)
+        }
+        onSuccess={() => {
+          fetchActivities();
+          onActivityChanged?.();
+        }}
       />
 
       <EditActivityModal
@@ -293,8 +341,12 @@ export default function ActivitySection({ dayId }: Props) {
           setIsEditModalOpen(false);
           setSelectedActivity(null);
         }}
-        onSuccess={fetchActivities}
+        onSuccess={() => {
+          fetchActivities();
+          onActivityChanged?.();
+        }}
       />
+
       <ConfirmDialog
         isOpen={deleteDialogOpen}
         title="Delete Activity"
@@ -303,10 +355,10 @@ export default function ActivitySection({ dayId }: Props) {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => {
-            setDeleteDialogOpen(false);
-            setSelectedActivityId(null);
+          setDeleteDialogOpen(false);
+          setSelectedActivityId(null);
         }}
-        />
+      />
     </>
   );
 }

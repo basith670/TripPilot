@@ -4,22 +4,36 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import BudgetOverview from "@/components/budget/BudgetOverview";
 import ItinerarySection from "@/components/itinerary/ItinerarySection";
 
+import { getBudgetSummary, BudgetSummary } from "@/services/budget.service";
 import { getTrip } from "@/services/trips.service";
+
+import { Trip } from "@/types/trip";
 
 export default function TripDetailsPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [trip, setTrip] = useState<any>(null);
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [budgetSummary, setBudgetSummary] =
+    useState<BudgetSummary | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrip = async () => {
+    const fetchTripDetails = async () => {
       try {
-        const data = await getTrip(id);
-        setTrip(data);
+        setLoading(true);
+
+        const [tripData, budgetData] = await Promise.all([
+          getTrip(id),
+          getBudgetSummary(id),
+        ]);
+
+        setTrip(tripData);
+        setBudgetSummary(budgetData);
       } catch (error) {
         console.error("Failed to fetch trip:", error);
       } finally {
@@ -28,7 +42,7 @@ export default function TripDetailsPage() {
     };
 
     if (id) {
-      fetchTrip();
+      fetchTripDetails();
     }
   }, [id]);
 
@@ -138,11 +152,16 @@ export default function TripDetailsPage() {
             )}
           </div>
 
+          {/* Budget Overview */}
+          {budgetSummary && (
+            <BudgetOverview summary={budgetSummary} />
+          )}
+
           {/* Itinerary */}
           <ItinerarySection
             tripId={id}
             travelers={trip.travelers}
-            />
+          />
         </div>
       )}
     </DashboardLayout>

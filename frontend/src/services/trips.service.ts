@@ -27,3 +27,17 @@ export const updateTrip = async (
 export const deleteTrip = async (id: number) => {
   await api.delete(`/trips/${id}/`);
 };
+
+export const saveAIItinerary = async (
+    tripId: string,
+    days: any[]
+  ) => {
+    const response = await api.post(
+      `/trips/${tripId}/save-ai-itinerary/`,
+      {
+        days,
+      }
+    );
+  
+    return response.data;
+  };
