@@ -44,8 +44,10 @@ export default function FlightsPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-10">
-          Loading trips...
+        <div className="flex items-center justify-center py-20">
+          <p className="text-lg text-gray-500">
+            Loading trips...
+          </p>
         </div>
       </DashboardLayout>
     );
@@ -53,16 +55,16 @@ export default function FlightsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 lg:text-4xl">
               Flights
             </h1>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 sm:text-base">
               Manage all flights for your trips.
             </p>
           </div>
@@ -70,7 +72,7 @@ export default function FlightsPage() {
           <button
             onClick={() => setAddModalOpen(true)}
             disabled={!selectedTrip}
-            className="rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             + Add Flight
           </button>
@@ -78,8 +80,8 @@ export default function FlightsPage() {
 
         {/* Trip Selector */}
 
-        <div className="rounded-2xl bg-white p-6 shadow">
-          <label className="mb-3 block font-semibold">
+        <div className="rounded-2xl bg-white p-4 shadow sm:p-6">
+          <label className="mb-3 block text-sm font-semibold text-gray-700">
             Select Trip
           </label>
 
@@ -88,7 +90,7 @@ export default function FlightsPage() {
             onChange={(e) =>
               setSelectedTrip(Number(e.target.value))
             }
-            className="w-full rounded-xl border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-gray-300 bg-white p-3 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:text-base"
           >
             {trips.map((trip) => (
               <option
@@ -113,7 +115,7 @@ export default function FlightsPage() {
             tripId={selectedTrip}
           />
         ) : (
-          <div className="rounded-2xl bg-white p-10 text-center shadow">
+          <div className="rounded-2xl bg-white p-8 text-center shadow sm:p-10">
             <p className="text-gray-500">
               No trips available.
             </p>

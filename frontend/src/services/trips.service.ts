@@ -6,13 +6,24 @@ export const getTrips = async () => {
   return response.data;
 };
 
-export const getTrip = async (id: number | string) => {
-  const response = await api.get(`/trips/${id}/`);
+export const getTrip = async (
+  id: number | string
+) => {
+  const response = await api.get(
+    `/trips/${id}/`
+  );
+
   return response.data;
 };
 
-export const createTrip = async (data: CreateTripData) => {
-  const response = await api.post("/trips/", data);
+export const createTrip = async (
+  data: CreateTripData
+) => {
+  const response = await api.post(
+    "/trips/",
+    data
+  );
+
   return response.data;
 };
 
@@ -20,24 +31,48 @@ export const updateTrip = async (
   id: number,
   data: CreateTripData
 ) => {
-  const response = await api.put(`/trips/${id}/`, data);
+  const response = await api.put(
+    `/trips/${id}/`,
+    data
+  );
+
   return response.data;
 };
 
-export const deleteTrip = async (id: number) => {
+export const deleteTrip = async (
+  id: number
+) => {
   await api.delete(`/trips/${id}/`);
 };
 
 export const saveAIItinerary = async (
-    tripId: string,
-    days: any[]
-  ) => {
-    const response = await api.post(
-      `/trips/${tripId}/save-ai-itinerary/`,
-      {
-        days,
-      }
-    );
-  
-    return response.data;
-  };
+  tripId: string,
+  days: any[]
+) => {
+  const response = await api.post(
+    `/trips/${tripId}/save-ai-itinerary/`,
+    {
+      days,
+    }
+  );
+
+  return response.data;
+};
+
+/* ==========================================================
+   SELECT FLIGHT
+========================================================== */
+
+export const selectFlight = async (
+  tripId: number,
+  flightId: number
+) => {
+  const response = await api.post(
+    `/trips/${tripId}/select-flight/`,
+    {
+      flight_id: flightId,
+    }
+  );
+
+  return response.data;
+};

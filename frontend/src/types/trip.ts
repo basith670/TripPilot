@@ -18,14 +18,23 @@ export interface Trip {
   destination_airport: Airport;
 
   departure_date: string;
-  return_date: string;
+  return_date: string | null;
 
   travelers: number;
+
   cabin_class: string;
-  budget: number;
+
+  budget: number | null;
 
   status: string;
+
   notes?: string;
 
+  // Selected Flight
+  selected_flight: number | null;
+
   days: ItineraryDay[];
+
+  created_at: string;
+  updated_at: string;
 }

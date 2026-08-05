@@ -88,28 +88,24 @@ export default function ActivitySection({
 
   const handleDelete = async () => {
     if (selectedActivityId === null) return;
-
+  
     try {
       setDeleting(true);
-
+  
       await deleteActivity(selectedActivityId);
-
-      toast.success(
-        "Activity deleted successfully."
-      );
-
+  
+      toast.success("Activity deleted successfully.");
+  
+      await fetchActivities();
+  
+      onActivityChanged?.();
+  
       setDeleteDialogOpen(false);
       setSelectedActivityId(null);
-
-      await fetchActivities();
-
-      onActivityChanged?.();
     } catch (error) {
       console.error(error);
-
-      toast.error(
-        "Failed to delete activity."
-      );
+  
+      toast.error("Failed to delete activity.");
     } finally {
       setDeleting(false);
     }
@@ -249,33 +245,25 @@ export default function ActivitySection({
                       </div>
 
                       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                        <button
-                          onClick={() => {
-                            setSelectedActivity(
-                              activity
-                            );
-                            setIsEditModalOpen(
-                              true
-                            );
-                          }}
-                          className="w-full rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 sm:w-auto"
-                        >
-                          Edit
-                        </button>
+                      <button
+                        onClick={() => {
+                          setSelectedActivity(activity);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="w-full rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-200 sm:w-auto"
+                      >
+                        ✏️ Edit
+                      </button>
 
                         <button
-                          onClick={() => {
-                            setSelectedActivityId(
-                              activity.id
-                            );
-                            setDeleteDialogOpen(
-                              true
-                            );
-                          }}
-                          className="w-full rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 sm:w-auto"
-                        >
-                          Delete
-                        </button>
+                    onClick={() => {
+                      setSelectedActivityId(activity.id);
+                      setDeleteDialogOpen(true);
+                    }}
+                    className="w-full rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200 sm:w-auto"
+                  >
+                    🗑 Delete
+                  </button>
                       </div>
                     </div>
 
@@ -349,12 +337,15 @@ export default function ActivitySection({
 
       <ConfirmDialog
         isOpen={deleteDialogOpen}
-        title="Delete Activity"
-        message="Are you sure you want to delete this activity? This action cannot be undone."
-        confirmText="Delete"
+        title="Delete this activity?"
+        message="This activity will be permanently removed from your itinerary. This action cannot be undone."
+        confirmText={deleting ? "Deleting..." : "Delete Activity"}
         loading={deleting}
+        variant="danger"
         onConfirm={handleDelete}
         onCancel={() => {
+          if (deleting) return;
+
           setDeleteDialogOpen(false);
           setSelectedActivityId(null);
         }}

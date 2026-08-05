@@ -126,8 +126,7 @@ export default function EditTripModal({
               departure_date:
                 trip.departure_date,
 
-              return_date:
-                trip.return_date,
+                return_date: trip.return_date ?? "",
 
               travelers:
                 trip.travelers,

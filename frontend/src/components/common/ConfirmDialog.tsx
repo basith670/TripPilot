@@ -7,6 +7,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   loading?: boolean;
+  variant?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -15,41 +16,71 @@ export default function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmText = "Delete",
+  confirmText = "Confirm",
   cancelText = "Cancel",
   loading = false,
+  variant = "danger",
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    if (loading) return;
+    onCancel();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="text-xl font-bold text-gray-900">
-          {title}
-        </h2>
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        {/* Header */}
 
-        <p className="mt-3 text-gray-600">
-          {message}
-        </p>
+        <div className="border-b px-6 py-5">
+          <h2 className="text-xl font-bold text-gray-900">
+            {title}
+          </h2>
+        </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="rounded-lg border px-5 py-2"
-          >
-            {cancelText}
-          </button>
+        {/* Body */}
 
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700"
-          >
-            {loading ? "Deleting..." : confirmText}
-          </button>
+        <div className="px-6 py-5">
+          <p className="leading-7 text-gray-600">
+            {message}
+          </p>
+        </div>
+
+        {/* Footer */}
+
+        <div className="border-t bg-white px-6 py-5">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              onClick={handleClose}
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-300 px-5 py-3 font-medium transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            >
+              {cancelText}
+            </button>
+
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className={`w-full rounded-lg px-5 py-3 font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto ${
+                variant === "danger"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {loading
+                ? "Processing..."
+                : confirmText}
+            </button>
+          </div>
         </div>
       </div>
     </div>
