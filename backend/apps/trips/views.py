@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.flights.models import Flight
+
 from .models import Activity, Trip
 from .serializers import TripSerializer
 from .services import save_ai_itinerary
@@ -20,6 +22,7 @@ class TripViewSet(viewsets.ModelViewSet):
             .select_related(
                 "source_airport",
                 "destination_airport",
+                "selected_flight",
             )
             .prefetch_related(
                 "days__activities",
@@ -28,6 +31,62 @@ class TripViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    # ==========================================================
+    # SELECT FLIGHT
+    # ==========================================================
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="select-flight",
+    )
+    def select_flight(self, request, pk=None):
+        trip = self.get_object()
+
+        flight_id = request.data.get("flight_id")
+
+        if not flight_id:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Flight ID is required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            flight = Flight.objects.get(
+                id=flight_id,
+                trip=trip,
+            )
+
+        except Flight.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Flight not found for this trip.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        trip.selected_flight = flight
+        trip.save(update_fields=["selected_flight"])
+
+        serializer = self.get_serializer(trip)
+
+        return Response(
+            {
+                "success": True,
+                "message": "Flight selected successfully.",
+                "trip": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    # ==========================================================
+    # SAVE AI ITINERARY
+    # ==========================================================
 
     @action(
         detail=True,
@@ -59,6 +118,10 @@ class TripViewSet(viewsets.ModelViewSet):
                 "message": "AI itinerary saved successfully.",
             }
         )
+
+    # ==========================================================
+    # BUDGET SUMMARY
+    # ==========================================================
 
     @action(
         detail=True,
@@ -157,30 +220,35 @@ class TripViewSet(viewsets.ModelViewSet):
 
         if budget == 0:
             budget_status = "NO_BUDGET"
+
             budget_message = (
                 "No budget has been set for this trip."
             )
 
         elif total_cost > budget:
             budget_status = "OVER_BUDGET"
+
             budget_message = (
                 f"You are over budget by ₹{total_cost - budget:,.0f}."
             )
 
         elif budget_used_percentage >= 90:
             budget_status = "CRITICAL"
+
             budget_message = (
                 "You have used more than 90% of your budget."
             )
 
         elif budget_used_percentage >= 70:
             budget_status = "WARNING"
+
             budget_message = (
                 "You have used more than 70% of your budget."
             )
 
         else:
             budget_status = "SAFE"
+
             budget_message = (
                 f"You still have ₹{remaining_budget:,.0f} remaining."
             )
@@ -201,8 +269,6 @@ class TripViewSet(viewsets.ModelViewSet):
                 "total_activities": total_activities,
                 "cost_by_day": cost_by_day,
                 "cost_by_priority": cost_by_priority,
-
-                # Budget Alert
                 "status": budget_status,
                 "message": budget_message,
             }

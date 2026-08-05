@@ -3,7 +3,6 @@ from django.db import models
 
 from apps.travel.models import Airport
 
-
 class Trip(models.Model):
     class CabinClass(models.TextChoices):
         ECONOMY = "ECONOMY", "Economy"
@@ -63,6 +62,14 @@ class Trip(models.Model):
         max_length=20,
         choices=TripStatus.choices,
         default=TripStatus.PLANNING,
+    )
+
+    selected_flight = models.ForeignKey(
+    "flights.Flight",
+    on_delete=models.SET_NULL,
+    related_name="selected_for_trips",
+    null=True,
+    blank=True,
     )
 
     notes = models.TextField(

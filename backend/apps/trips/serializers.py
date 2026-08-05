@@ -3,7 +3,13 @@ from datetime import date
 from rest_framework import serializers
 
 from apps.travel.models import Airport
-from .models import Trip, ItineraryDay, Activity
+from apps.flights.models import Flight
+
+from .models import (
+    Trip,
+    ItineraryDay,
+    Activity,
+)
 
 
 class AirportMiniSerializer(serializers.ModelSerializer):
@@ -52,8 +58,13 @@ class ItineraryDaySerializer(serializers.ModelSerializer):
 
 class TripSerializer(serializers.ModelSerializer):
 
-    source_airport = AirportMiniSerializer(read_only=True)
-    destination_airport = AirportMiniSerializer(read_only=True)
+    source_airport = AirportMiniSerializer(
+        read_only=True,
+    )
+
+    destination_airport = AirportMiniSerializer(
+        read_only=True,
+    )
 
     source_airport_id = serializers.PrimaryKeyRelatedField(
         queryset=Airport.objects.all(),
@@ -67,6 +78,26 @@ class TripSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
+    # ---------- Selected Flight ----------
+
+    selected_flight = serializers.PrimaryKeyRelatedField(
+        queryset=Flight.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    selected_flight_number = serializers.CharField(
+        source="selected_flight.flight_number",
+        read_only=True,
+    )
+
+    selected_airline = serializers.CharField(
+        source="selected_flight.airline.name",
+        read_only=True,
+    )
+
+    # ---------- Itinerary ----------
+
     days = ItineraryDaySerializer(
         many=True,
         read_only=True,
@@ -74,20 +105,35 @@ class TripSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trip
+
         fields = (
             "id",
+
             "source_airport",
             "destination_airport",
+
             "source_airport_id",
             "destination_airport_id",
+
             "departure_date",
             "return_date",
+
             "travelers",
+
             "cabin_class",
+
             "budget",
+
             "status",
+
+            "selected_flight",
+            "selected_flight_number",
+            "selected_airline",
+
             "notes",
+
             "days",
+
             "created_at",
             "updated_at",
         )
@@ -102,8 +148,10 @@ class TripSerializer(serializers.ModelSerializer):
 
         source = attrs.get("source_airport")
         destination = attrs.get("destination_airport")
+
         departure = attrs.get("departure_date")
         return_date = attrs.get("return_date")
+
         travelers = attrs.get("travelers")
         budget = attrs.get("budget")
 
@@ -123,7 +171,11 @@ class TripSerializer(serializers.ModelSerializer):
                 }
             )
 
-        if return_date and departure and return_date < departure:
+        if (
+            return_date
+            and departure
+            and return_date < departure
+        ):
             raise serializers.ValidationError(
                 {
                     "return_date":
