@@ -33,6 +33,9 @@ export interface Trip {
   // Selected Flight
   selected_flight: number | null;
 
+  // Selected Hotel
+  selected_hotel: number | null;
+
   days: ItineraryDay[];
 
   created_at: string;

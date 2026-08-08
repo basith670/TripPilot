@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import AddDayModal from "./AddDayModal";
+import EditDayModal from "./EditDayModal";
 import ActivitySection from "./ActivitySection";
 
 import TripSummary from "../trips/TripSummary";
@@ -29,8 +30,6 @@ import DayActionsMenu from "@/components/common/DayActionsMenu";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 import { toast } from "sonner";
-
-import EditDayModal from "./EditDayModal";
 
 interface ItinerarySectionProps {
   tripId: string;
@@ -65,10 +64,11 @@ export default function ItinerarySection({
   const [deletingDay, setDeletingDay] =
     useState(false);
 
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] =
+    useState(false);
 
   const [selectedDay, setSelectedDay] =
-      useState<ItineraryDay | null>(null);
+    useState<ItineraryDay | null>(null);
 
   const fetchDays = async () => {
     try {
@@ -127,9 +127,13 @@ export default function ItinerarySection({
     try {
       setDeletingDay(true);
 
-      await deleteItineraryDay(selectedDayId);
+      await deleteItineraryDay(
+        selectedDayId
+      );
 
-      toast.success("Day deleted successfully.");
+      toast.success(
+        "Day deleted successfully."
+      );
 
       setDeleteDialogOpen(false);
       setSelectedDayId(null);
@@ -138,7 +142,9 @@ export default function ItinerarySection({
     } catch (error) {
       console.error(error);
 
-      toast.error("Failed to delete day.");
+      toast.error(
+        "Failed to delete day."
+      );
     } finally {
       setDeletingDay(false);
     }
@@ -156,7 +162,9 @@ export default function ItinerarySection({
     } catch (error) {
       console.error(error);
 
-      toast.error("Failed to duplicate day.");
+      toast.error(
+        "Failed to duplicate day."
+      );
     }
   };
 
@@ -172,195 +180,553 @@ export default function ItinerarySection({
         }
         travelers={travelers}
       />
+      <div
+  className="
+    rounded-[32px]
+    border
+    border-border
+    bg-card/80
+    backdrop-blur-xl
+    p-6
+    shadow-xl
+    sm:p-8
+  "
+>
+  {/* Header */}
 
-<div className="rounded-2xl bg-white p-4 shadow sm:p-6 lg:p-8">
-<div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">
-              Itinerary
-            </h2>
+  <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
-            <p className="mt-1 text-gray-500">
-              Organize your trip day by day.
-            </p>
-          </div>
+    <div>
 
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <button
-              onClick={() =>
-                setIsAIDialogOpen(true)
-              }
-              className="w-full rounded-lg bg-purple-600 px-4 py-3 text-white transition hover:bg-purple-700 sm:w-auto"
-            >
-              🤖 Generate with AI
-            </button>
+      <span
+        className="
+          inline-flex
+          rounded-full
+          bg-blue-500/10
+          px-4
+          py-2
+          text-sm
+          font-semibold
+          text-blue-600
+          dark:text-blue-400
+        "
+      >
+        Travel Timeline
+      </span>
 
-            <button
-              onClick={() =>
-                setIsModalOpen(true)
-              }
-             className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white transition hover:bg-blue-700 sm:w-auto"
-            >
-              + Add Day
-            </button>
-          </div>
-        </div>
+      <h2 className="mt-5 text-4xl font-bold text-foreground">
+        Itinerary
+      </h2>
 
-        {loading ? (
-          <p className="text-gray-500">
-            Loading itinerary...
-          </p>
-        ) : days.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-10 text-center">
-            <p className="text-gray-500">
-              No itinerary created yet.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {days.map((day) => (
-              <div
-                key={day.id}
-                className="rounded-xl border border-gray-200 bg-white p-4 transition hover:shadow-md sm:p-6"
-              >
-                {/* Header */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold">
-                      Day {day.day_number}
-                    </h3>
+      <p className="mt-2 text-muted-foreground">
+        Organize every day of your trip with activities,
+        hotels and transportation.
+      </p>
 
-                    <p className="mt-1 text-gray-600">
-                      {day.title}
-                    </p>
-                  </div>
+    </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-                      {day.date}
-                    </span>
+    <div className="flex flex-col gap-3 sm:flex-row">
 
-                    <DayActionsMenu
-                      onEdit={() => {
-                        setSelectedDay(day);
-                        setEditModalOpen(true);
-                      }}
-                      onDuplicate={() => handleDuplicateDay(day.id)}
-                      onDelete={() => {
-                        setSelectedDayId(day.id);
-                        setDeleteDialogOpen(true);
-                      }}
-                    />
-                  </div>
-                </div>
+      <button
+        onClick={() =>
+          setIsAIDialogOpen(true)
+        }
+        className="
+          inline-flex
+          items-center
+          justify-center
 
-                {/* Notes */}
-                {day.notes && (
-                  <div className="mt-5 rounded-lg bg-gray-50 p-4">
-                    <p className="text-gray-700">
-                      {day.notes}
-                    </p>
-                  </div>
-                )}
+          rounded-2xl
 
-                {/* Activities */}
-                <div className="mt-6 border-t pt-6">
-                  <ActivitySection
-                    dayId={day.id}
-                    onActivityChanged={
-                      fetchDays
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          bg-gradient-to-r
+          from-violet-600
+          to-fuchsia-600
+
+          px-6
+          py-3
+
+          font-semibold
+          text-white
+
+          shadow-lg
+
+          transition-all
+
+          hover:-translate-y-1
+          hover:shadow-xl
+        "
+      >
+        🤖 Generate with AI
+      </button>
+
+      <button
+        onClick={() =>
+          setIsModalOpen(true)
+        }
+        className="
+          inline-flex
+          items-center
+          justify-center
+
+          rounded-2xl
+
+          bg-gradient-to-r
+          from-blue-600
+          to-cyan-600
+
+          px-6
+          py-3
+
+          font-semibold
+          text-white
+
+          shadow-lg
+
+          transition-all
+
+          hover:-translate-y-1
+          hover:shadow-xl
+        "
+      >
+        + Add Day
+      </button>
+
+    </div>
+
+  </div>
+
+  {loading ? (
+
+    <div className="py-16 text-center">
+
+      <div
+        className="
+          mx-auto
+          h-12
+          w-12
+          animate-spin
+          rounded-full
+          border-4
+          border-blue-600
+          border-t-transparent
+        "
+      />
+
+      <p className="mt-6 text-muted-foreground">
+        Loading itinerary...
+      </p>
+
+    </div>
+
+  ) : days.length === 0 ? (
+
+    <div
+      className="
+        rounded-3xl
+        border-2
+        border-dashed
+        border-border
+        bg-muted/30
+        p-16
+        text-center
+      "
+    >
+
+      <div className="text-6xl">
+        ✈️
       </div>
 
-      {generatedItinerary && (
-        <div className="mt-8 rounded-2xl border border-purple-200 bg-purple-50 p-4 shadow sm:p-6 lg:p-8">
-          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <h2 className="text-2xl font-bold text-purple-700">
-              🤖 AI Generated Itinerary
-            </h2>
+      <h3 className="mt-6 text-3xl font-bold text-foreground">
+        No itinerary yet
+      </h3>
 
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <span className="rounded-full bg-purple-100 px-4 py-2 text-sm font-semibold text-purple-700">
-                {generatedItinerary.length} Days
-              </span>
+      <p className="mt-3 text-muted-foreground">
+        Add your first travel day or let AI build
+        a complete itinerary for you.
+      </p>
 
-              <button
-                onClick={
-                  handleSaveAIItinerary
-                }
-                className="w-full rounded-lg bg-green-600 px-5 py-3 text-white transition hover:bg-green-700 sm:w-auto"
-              >
-                💾 Save to Trip
-              </button>
-            </div>
-          </div>
+    </div>
 
-          <div className="space-y-6">
-            {generatedItinerary.map(
-              (day) => (
+  ) : (
+
+    <div className="space-y-8">
+
+      {days.map((day) => (
+
+        <div
+          key={day.id}
+          className="
+            rounded-[28px]
+            border
+            border-border
+            bg-card
+            p-6
+            shadow-md
+            transition-all
+            duration-300
+
+            hover:-translate-y-1
+            hover:shadow-xl
+          "
+        >
+
+          {/* Header */}
+
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+
+            <div>
+
+              <div className="flex items-center gap-4">
+
                 <div
-                  key={day.day}
-                  className="rounded-xl border bg-white p-4 sm:p-6"
+                  className="
+                    flex
+                    h-14
+                    w-14
+                    items-center
+                    justify-center
+
+                    rounded-2xl
+
+                    bg-gradient-to-br
+                    from-blue-600
+                    to-cyan-600
+
+                    text-xl
+                    font-bold
+                    text-white
+                  "
                 >
-                  <h3 className="mb-4 text-xl font-bold">
-                    Day {day.day}
+                  {day.day_number}
+                </div>
+
+                <div>
+
+                  <h3 className="text-2xl font-bold text-foreground">
+                    {day.title}
                   </h3>
 
-                  <div className="space-y-4">
-                    {day.activities.map(
-                      (
-                        activity,
-                        index
-                      ) => (
-                        <div
-                          key={index}
-                          className="rounded-lg border p-4"
-                        >
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <h4 className="font-semibold">
-                              {
-                                activity.title
-                              }
-                            </h4>
+                  <p className="mt-1 text-muted-foreground">
+                    Day {day.day_number}
+                  </p>
 
-                            <span className="rounded bg-purple-100 px-3 py-1 text-sm">
-                              {
-                                activity.time
-                              }
-                            </span>
-                          </div>
-
-                          <p className="mt-2 text-gray-600">
-                            {
-                              activity.description
-                            }
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
                 </div>
-              )
-            )}
-          </div>
-        </div>
-      )}
 
+              </div>
+
+            </div>
+
+            <div className="flex items-center gap-3">
+
+              <span
+                className="
+                  rounded-full
+                  bg-blue-500/10
+                  px-4
+                  py-2
+                  text-sm
+                  font-semibold
+                  text-blue-600
+                  dark:text-blue-400
+                "
+              >
+                {day.date}
+              </span>
+
+              <DayActionsMenu
+                onEdit={() => {
+                  setSelectedDay(day);
+                  setEditModalOpen(true);
+                }}
+                onDuplicate={() =>
+                  handleDuplicateDay(day.id)
+                }
+                onDelete={() => {
+                  setSelectedDayId(day.id);
+                  setDeleteDialogOpen(true);
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          {day.notes && (
+
+            <div
+              className="
+                mt-6
+                rounded-2xl
+                border
+                border-border
+                bg-muted/40
+                p-5
+              "
+            >
+
+              <p className="leading-7 text-muted-foreground">
+                {day.notes}
+              </p>
+
+            </div>
+
+          )}
+
+          <div className="mt-8 border-t border-border pt-8">
+
+            <ActivitySection
+              dayId={day.id}
+              onActivityChanged={fetchDays}
+            />
+
+          </div>
+
+        </div>
+
+      ))}
+
+    </div>
+
+  )}
+
+</div>
+{generatedItinerary && (
+
+<section
+  className="
+    mt-10
+
+    rounded-[32px]
+
+    border
+    border-violet-500/20
+
+    bg-gradient-to-br
+    from-violet-500/5
+    via-card
+    to-fuchsia-500/5
+
+    p-8
+
+    shadow-xl
+  "
+>
+
+  {/* Header */}
+
+  <div className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+    <div>
+
+      <span
+        className="
+          inline-flex
+          rounded-full
+          bg-violet-500/10
+          px-4
+          py-2
+          text-sm
+          font-semibold
+          text-violet-600
+          dark:text-violet-400
+        "
+      >
+        🤖 AI Generated
+      </span>
+
+      <h2 className="mt-5 text-4xl font-bold text-foreground">
+        Suggested Itinerary
+      </h2>
+
+      <p className="mt-2 text-muted-foreground">
+        Review the AI generated travel plan before saving
+        it to your trip.
+      </p>
+
+    </div>
+
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+      <span
+        className="
+          rounded-full
+          bg-violet-500/10
+          px-5
+          py-2
+          text-sm
+          font-semibold
+          text-violet-600
+          dark:text-violet-400
+        "
+      >
+        {generatedItinerary.length} Days
+      </span>
+
+      <button
+        onClick={handleSaveAIItinerary}
+        className="
+          rounded-2xl
+
+          bg-gradient-to-r
+          from-emerald-600
+          to-green-600
+
+          px-6
+          py-3
+
+          font-semibold
+          text-white
+
+          shadow-lg
+
+          transition-all
+
+          hover:-translate-y-1
+          hover:shadow-xl
+        "
+      >
+        💾 Save to Trip
+      </button>
+
+    </div>
+
+  </div>
+
+  <div className="space-y-8">
+
+    {generatedItinerary.map((day) => (
+
+      <div
+        key={day.day}
+        className="
+          rounded-[28px]
+
+          border
+          border-border
+
+          bg-card
+
+          p-6
+
+          shadow-md
+        "
+      >
+
+        {/* Day Header */}
+
+        <div className="mb-8 flex items-center gap-5">
+
+          <div
+            className="
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+
+              rounded-2xl
+
+              bg-gradient-to-br
+              from-violet-600
+              to-fuchsia-600
+
+              text-xl
+              font-bold
+              text-white
+            "
+          >
+            {day.day}
+          </div>
+
+          <div>
+
+            <h3 className="text-2xl font-bold text-foreground">
+              Day {day.day}
+            </h3>
+
+            <p className="text-muted-foreground">
+              AI Recommended Schedule
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Activities */}
+
+        <div className="space-y-5">
+
+          {day.activities.map((activity, index) => (
+
+            <div
+              key={index}
+              className="
+                rounded-2xl
+
+                border
+                border-border
+
+                bg-muted/30
+
+                p-5
+
+                transition-all
+
+                hover:bg-muted/50
+              "
+            >
+
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+
+                <h4 className="text-lg font-semibold text-foreground">
+                  {activity.title}
+                </h4>
+
+                <span
+                  className="
+                    rounded-full
+
+                    bg-violet-500/10
+
+                    px-4
+                    py-2
+
+                    text-sm
+                    font-semibold
+
+                    text-violet-600
+                    dark:text-violet-400
+                  "
+                >
+                  {activity.time}
+                </span>
+
+              </div>
+
+              <p className="mt-4 leading-7 text-muted-foreground">
+                {activity.description}
+              </p>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+
+</section>
+
+)}
       <GenerateItineraryDialog
         open={isAIDialogOpen}
-        onOpenChange={
-          setIsAIDialogOpen
-        }
+        onOpenChange={setIsAIDialogOpen}
         onGenerated={(data) =>
-          setGeneratedItinerary(
-            data.days
-          )
+          setGeneratedItinerary(data.days)
         }
       />
 
@@ -386,8 +752,8 @@ export default function ItinerarySection({
       <ConfirmDialog
         isOpen={deleteDialogOpen}
         title="Delete Day"
-        message="This will permanently delete the day and all of its activities."
-        confirmText="Delete"
+        message="This will permanently delete this day and all of its activities."
+        confirmText="Delete Day"
         loading={deletingDay}
         onConfirm={handleDeleteDay}
         onCancel={() => {

@@ -19,6 +19,8 @@ import {
 
 import { toast } from "sonner";
 
+import { createPortal } from "react-dom";
+
 interface Props {
   isOpen: boolean;
 
@@ -354,29 +356,50 @@ export default function EditFlightModal({
   if (!isOpen || !flight)
     return null;
 
-  return (
+  return createPortal(
     <div
       onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4"
+      className="
+            fixed
+            inset-0
+            z-[9999]
+            flex
+            items-center
+            justify-center
+            bg-black/60
+            backdrop-blur-sm
+            p-4
+            "
     >
       <div
         onClick={(e) =>
           e.stopPropagation()
         }
-        className="flex max-h-[95vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="
+        relative
+        flex
+        h-[92vh]
+        w-full
+        max-w-6xl
+        flex-col
+        overflow-hidden
+        rounded-[32px]
+        bg-card
+        shadow-2xl
+        "
       >
         {/* Header */}
 
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-white px-6 py-5">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-card px-6 py-5">
 
-          <h2 className="text-xl font-bold sm:text-2xl">
+          <h2 className="text-xl font-bold text-foreground sm:text-2xl">
             Edit Flight
           </h2>
 
           <button
             onClick={handleClose}
             disabled={loading}
-            className="text-3xl text-gray-500 transition hover:text-red-600"
+            className="text-3xl text-muted-foreground transition hover:text-red-600 dark:hover:text-red-400"
           >
             ×
           </button>
@@ -395,7 +418,7 @@ export default function EditFlightModal({
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Airline
                 </label>
 
@@ -408,7 +431,7 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
                 >
                   <option value="">
                     Select Airline
@@ -437,7 +460,7 @@ export default function EditFlightModal({
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Flight Number
                 </label>
 
@@ -453,7 +476,7 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
                 />
 
               </div>
@@ -464,7 +487,7 @@ export default function EditFlightModal({
 
             <div>
 
-              <label className="mb-2 block font-medium">
+              <label className="mb-2 block font-medium text-foreground">
                 Flight Type
               </label>
 
@@ -481,7 +504,7 @@ export default function EditFlightModal({
                         | "RETURN",
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
               >
                 <option value="OUTBOUND">
                   Outbound
@@ -501,7 +524,7 @@ export default function EditFlightModal({
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Source Airport
                 </label>
 
@@ -516,7 +539,7 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground"
                 >
                   <option value="">
                     Select Airport
@@ -549,7 +572,7 @@ export default function EditFlightModal({
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Destination Airport
                 </label>
 
@@ -564,7 +587,7 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground"
                 >
                   <option value="">
                     Select Airport
@@ -603,7 +626,7 @@ export default function EditFlightModal({
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Departure
                 </label>
 
@@ -619,14 +642,14 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground"
                 />
 
               </div>
 
               <div>
 
-                <label className="mb-2 block font-medium">
+                <label className="mb-2 block font-medium text-foreground">
                   Arrival
                 </label>
 
@@ -642,314 +665,316 @@ export default function EditFlightModal({
                         e.target.value,
                     }))
                   }
-                  className="w-full rounded-lg border border-gray-300 p-3"
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground"
                 />
 
               </div>
 
             </div>
-                        {/* Cabin Class + Price */}
-
-                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Cabin Class
-  </label>
-
-  <select
-    value={form.cabin_class}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        cabin_class:
-          e.target.value as
-            | "ECONOMY"
-            | "PREMIUM_ECONOMY"
-            | "BUSINESS"
-            | "FIRST",
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  >
-    <option value="ECONOMY">
-      Economy
-    </option>
-
-    <option value="PREMIUM_ECONOMY">
-      Premium Economy
-    </option>
-
-    <option value="BUSINESS">
-      Business
-    </option>
-
-    <option value="FIRST">
-      First Class
-    </option>
-
-  </select>
-
-</div>
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Ticket Price
-  </label>
-
-  <input
-    type="number"
-    value={form.price}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        price: e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-</div>
-
-{/* Stops + Baggage */}
-
-<div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Stops
-  </label>
-
-  <input
-    type="number"
-    value={form.stops}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        stops: e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Baggage Allowance
-  </label>
-
-  <input
-    type="text"
-    value={form.baggage_allowance}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        baggage_allowance:
-          e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-</div>
-
-{/* Aircraft + Terminal */}
-
-<div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Aircraft
-  </label>
-
-  <input
-    type="text"
-    value={form.aircraft}
-    placeholder="Boeing 787 Dreamliner"
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        aircraft:
-          e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Terminal
-  </label>
-
-  <input
-    type="text"
-    value={form.terminal}
-    placeholder="Terminal 3"
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        terminal:
-          e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-</div>
-
-{/* Gate + Booking Reference */}
-
-<div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Gate
-  </label>
-
-  <input
-    type="text"
-    value={form.gate}
-    placeholder="A12"
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        gate:
-          e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Booking Reference
-  </label>
-
-  <input
-    type="text"
-    value={form.booking_reference}
-    placeholder="ABC123"
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        booking_reference:
-          e.target.value,
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  />
-
-</div>
-
-</div>
-
-{/* Refundable + Status */}
-
-<div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Refundable
-  </label>
-
-  <select
-    value={
-      form.refundable
-        ? "YES"
-        : "NO"
-    }
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        refundable:
-          e.target.value ===
-          "YES",
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  >
-    <option value="YES">
-      Yes
-    </option>
-
-    <option value="NO">
-      No
-    </option>
-
-  </select>
-
-</div>
-
-<div>
-
-  <label className="mb-2 block font-medium">
-    Status
-  </label>
-
-  <select
-    value={form.status}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        status:
-          e.target.value as
-            | "SCHEDULED"
-            | "DELAYED"
-            | "BOARDING"
-            | "LANDED"
-            | "CANCELLED",
-      }))
-    }
-    className="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
-  >
-    <option value="SCHEDULED">
-      Scheduled
-    </option>
-
-    <option value="DELAYED">
-      Delayed
-    </option>
-
-    <option value="BOARDING">
-      Boarding
-    </option>
-
-    <option value="LANDED">
-      Landed
-    </option>
-
-    <option value="CANCELLED">
-      Cancelled
-    </option>
-
-  </select>
-
-</div>
-
-</div>
+
+            {/* Cabin Class + Price */}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Cabin Class
+                </label>
+
+                <select
+                  value={form.cabin_class}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      cabin_class:
+                        e.target.value as
+                          | "ECONOMY"
+                          | "PREMIUM_ECONOMY"
+                          | "BUSINESS"
+                          | "FIRST",
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="ECONOMY">
+                    Economy
+                  </option>
+
+                  <option value="PREMIUM_ECONOMY">
+                    Premium Economy
+                  </option>
+
+                  <option value="BUSINESS">
+                    Business
+                  </option>
+
+                  <option value="FIRST">
+                    First Class
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Ticket Price
+                </label>
+
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      price: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Stops + Baggage */}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Stops
+                </label>
+
+                <input
+                  type="number"
+                  value={form.stops}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      stops: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Baggage Allowance
+                </label>
+
+                <input
+                  type="text"
+                  value={form.baggage_allowance}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      baggage_allowance:
+                        e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Aircraft + Terminal */}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Aircraft
+                </label>
+
+                <input
+                  type="text"
+                  value={form.aircraft}
+                  placeholder="Boeing 787 Dreamliner"
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      aircraft:
+                        e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Terminal
+                </label>
+
+                <input
+                  type="text"
+                  value={form.terminal}
+                  placeholder="Terminal 3"
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      terminal:
+                        e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Gate + Booking Reference */}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Gate
+                </label>
+
+                <input
+                  type="text"
+                  value={form.gate}
+                  placeholder="A12"
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      gate:
+                        e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Booking Reference
+                </label>
+
+                <input
+                  type="text"
+                  value={form.booking_reference}
+                  placeholder="ABC123"
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      booking_reference:
+                        e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Refundable + Status */}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Refundable
+                </label>
+
+                <select
+                  value={
+                    form.refundable
+                      ? "YES"
+                      : "NO"
+                  }
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      refundable:
+                        e.target.value ===
+                        "YES",
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="YES">
+                    Yes
+                  </option>
+
+                  <option value="NO">
+                    No
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="mb-2 block font-medium text-foreground">
+                  Status
+                </label>
+
+                <select
+                  value={form.status}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      status:
+                        e.target.value as
+                          | "SCHEDULED"
+                          | "DELAYED"
+                          | "BOARDING"
+                          | "LANDED"
+                          | "CANCELLED",
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-card p-3 text-foreground focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="SCHEDULED">
+                    Scheduled
+                  </option>
+
+                  <option value="DELAYED">
+                    Delayed
+                  </option>
+
+                  <option value="BOARDING">
+                    Boarding
+                  </option>
+
+                  <option value="LANDED">
+                    Landed
+                  </option>
+
+                  <option value="CANCELLED">
+                    Cancelled
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
             {/* Footer */}
 
-            <div className="sticky bottom-0 -mx-6 mt-8 border-t bg-white px-6 py-5">
+            <div className="sticky bottom-0 -mx-6 mt-8 border-t border-border bg-card px-6 py-5">
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
@@ -957,7 +982,7 @@ export default function EditFlightModal({
                   type="button"
                   onClick={handleClose}
                   disabled={loading}
-                  className="w-full rounded-lg border border-gray-300 px-5 py-3 font-medium transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-lg border border-border px-5 py-3 font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -983,6 +1008,7 @@ export default function EditFlightModal({
 
       </div>
 
-    </div>
+    </div>,
+    document.body
   );
 }

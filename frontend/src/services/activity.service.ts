@@ -1,6 +1,10 @@
 import api from "@/lib/axios";
 import { Activity } from "@/types/itinerary";
 
+/* -------------------------------- */
+/* Get Activities for a Specific Day */
+/* -------------------------------- */
+
 export const getActivities = async (
   dayId: number | string
 ): Promise<Activity[]> => {
@@ -11,6 +15,20 @@ export const getActivities = async (
       Number(activity.itinerary_day) === Number(dayId)
   );
 };
+
+/* -------------------------------- */
+/* Get All Activities */
+/* -------------------------------- */
+
+export const getAllActivities = async (): Promise<Activity[]> => {
+  const response = await api.get<Activity[]>("/activities/");
+
+  return response.data;
+};
+
+/* -------------------------------- */
+/* Create Activity */
+/* -------------------------------- */
 
 export const createActivity = async (
   data: Omit<Activity, "id">
@@ -23,6 +41,10 @@ export const createActivity = async (
   return response.data;
 };
 
+/* -------------------------------- */
+/* Update Activity */
+/* -------------------------------- */
+
 export const updateActivity = async (
   id: number,
   data: Partial<Omit<Activity, "id">>
@@ -34,6 +56,10 @@ export const updateActivity = async (
 
   return response.data;
 };
+
+/* -------------------------------- */
+/* Delete Activity */
+/* -------------------------------- */
 
 export const deleteActivity = async (
   id: number

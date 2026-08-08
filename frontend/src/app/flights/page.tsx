@@ -4,22 +4,49 @@ import { useEffect, useState } from "react";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
+import FlightHero from "@/components/flights/FlightHero";
+import FlightFilters from "@/components/flights/FlightFilters";
 import FlightList from "@/components/flights/FlightList";
+import FlightSkeleton from "@/components/flights/FlightSkeleton";
+import EmptyFlights from "@/components/flights/EmptyFlights";
+import FlightSummary from "@/components/flights/FlightSummary";
 import AddFlightModal from "@/components/flights/AddFlightModal";
 
 import { getTrips } from "@/services/trips.service";
+import { getFlights } from "@/services/flight.service";
 
 import { Trip } from "@/types/trip";
+import { Flight } from "@/types/flight";
 
 export default function FlightsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [selectedTrip, setSelectedTrip] = useState<number>();
+  const [flights, setFlights] = useState<Flight[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [selectedTrip, setSelectedTrip] =
+    useState<number>();
 
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedFlightId, setSelectedFlightId] =
+    useState<number | null>(null);
 
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [status, setStatus] =
+    useState("all");
+
+  const [sort, setSort] =
+    useState("latest");
+
+  const [addModalOpen, setAddModalOpen] =
+    useState(false);
+
+  const [refreshKey, setRefreshKey] =
+    useState(0);
+
+  /* ---------------- Trips ---------------- */
 
   useEffect(() => {
     const loadTrips = async () => {
@@ -30,6 +57,10 @@ export default function FlightsPage() {
 
         if (data.length > 0) {
           setSelectedTrip(data[0].id);
+
+          setSelectedFlightId(
+            data[0].selected_flight ?? null
+          );
         }
       } catch (error) {
         console.error(error);
@@ -41,99 +72,218 @@ export default function FlightsPage() {
     loadTrips();
   }, []);
 
+  /* ---------------- Flights ---------------- */
+
+  useEffect(() => {
+    const loadFlights = async () => {
+      if (!selectedTrip) {
+        setFlights([]);
+        return;
+      }
+
+      try {
+        const data = await getFlights({
+          trip: selectedTrip,
+        });
+
+        setFlights(data);
+
+        const trip = trips.find(
+          (t) => t.id === selectedTrip
+        );
+
+        setSelectedFlightId(
+          trip?.selected_flight ?? null
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadFlights();
+  }, [selectedTrip, refreshKey, trips]);
+
+  /* ---------------- Statistics ---------------- */
+
+  const totalFlights = flights.length;
+
+  const scheduledFlights = flights.filter(
+    (flight) => flight.status === "SCHEDULED"
+  ).length;
+
+  const selectedFlights =
+    selectedFlightId !== null ? 1 : 0;
+
+  const totalFlightCost = flights.reduce(
+    (sum, flight) =>
+      sum + Number(flight.price),
+    0
+  );
+
+  const tripOptions = trips.map((trip) => ({
+    id: trip.id,
+    label: `${trip.source_airport.iata_code} → ${trip.destination_airport.iata_code}`,
+  }));
+
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center py-20">
-          <p className="text-lg text-gray-500">
-            Loading trips...
-          </p>
-        </div>
+        <FlightSkeleton />
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 lg:text-4xl">
-              Flights
-            </h1>
-
-            <p className="mt-2 text-sm text-gray-500 sm:text-base">
-              Manage all flights for your trips.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setAddModalOpen(true)}
-            disabled={!selectedTrip}
-            className="w-full rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-          >
-            + Add Flight
-          </button>
-        </div>
-
-        {/* Trip Selector */}
-
-        <div className="rounded-2xl bg-white p-4 shadow sm:p-6">
-          <label className="mb-3 block text-sm font-semibold text-gray-700">
-            Select Trip
-          </label>
-
-          <select
-            value={selectedTrip}
-            onChange={(e) =>
-              setSelectedTrip(Number(e.target.value))
-            }
-            className="w-full rounded-xl border border-gray-300 bg-white p-3 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:text-base"
-          >
-            {trips.map((trip) => (
-              <option
-                key={trip.id}
-                value={trip.id}
-              >
-                {trip.source_airport.iata_code}
-                {" → "}
-                {trip.destination_airport.iata_code}
-                {" • "}
-                {trip.departure_date}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Flight List */}
-
-        {selectedTrip ? (
-          <FlightList
-            key={refreshKey}
-            tripId={selectedTrip}
-          />
-        ) : (
-          <div className="rounded-2xl bg-white p-8 text-center shadow sm:p-10">
-            <p className="text-gray-500">
-              No trips available.
-            </p>
-          </div>
-        )}
-
-        {/* Add Flight Modal */}
-
-        <AddFlightModal
-          isOpen={addModalOpen}
-          tripId={selectedTrip ?? 0}
-          onClose={() => setAddModalOpen(false)}
-          onSuccess={async () => {
-            setRefreshKey((prev) => prev + 1);
-            setAddModalOpen(false);
-          }}
+      <div className="space-y-12">
+  
+        {/* Hero */}
+  
+        <FlightHero
+          totalFlights={totalFlights}
+          scheduledFlights={scheduledFlights}
+          selectedFlights={selectedFlights}
         />
-      </div>
-    </DashboardLayout>
-  );
+  
+        {/* Filters */}
+  
+        <div className="mt-10">
+          <FlightFilters
+            search={search}
+            setSearch={setSearch}
+            trip={String(selectedTrip ?? "all")}
+            setTrip={(value) => {
+              const tripId = Number(value);
+  
+              setSelectedTrip(tripId);
+  
+              const trip = trips.find(
+                (t) => t.id === tripId
+              );
+  
+              setSelectedFlightId(
+                trip?.selected_flight ?? null
+              );
+            }}
+            status={status}
+            setStatus={setStatus}
+            sort={sort}
+            setSort={setSort}
+            trips={tripOptions}
+          />
+        </div>
+  
+        {/* Flights */}
+  
+        <section className="mt-12 space-y-8">
+  
+        <div className="mb-10">
+  
+            <span
+              className="
+                inline-flex
+                items-center
+  
+                rounded-full
+  
+                border
+                border-cyan-500/20
+  
+                bg-cyan-500/10
+  
+                px-4
+                py-2
+  
+                text-sm
+                font-semibold
+  
+                text-cyan-700 dark:text-cyan-300
+              "
+            >
+              Flight Collection
+            </span>
+  
+            <h2
+              className="
+                mt-5
+  
+                text-4xl
+                font-bold
+  
+                text-slate-900 dark:text-white
+              "
+            >
+              Available Flights
+            </h2>
+  
+            <p
+              className="
+                mt-3
+  
+                max-w-2xl
+  
+                text-slate-600 dark:text-slate-400
+              "
+            >
+              Browse, compare and manage every
+              available flight for your selected
+              trip from one centralized dashboard.
+            </p>
+  
+          </div>
+  
+          {selectedTrip ? (
+  
+            <FlightList
+              key={refreshKey}
+              tripId={selectedTrip}
+              search={search}
+              status={status}
+              sort={sort}
+            />
+  
+          ) : (
+  
+            <EmptyFlights
+              onCreate={() =>
+                setAddModalOpen(true)
+              }
+            />
+  
+          )}
+  
+        </section>
+  
+        {/* Summary */}
+  
+        <section className="mt-16">
+  
+          <FlightSummary
+            totalFlights={totalFlights}
+            selectedFlights={selectedFlights}
+            totalCost={totalFlightCost}
+          />
+  
+        </section>
+
+              {/* Add Flight */}
+
+      <AddFlightModal
+        isOpen={addModalOpen}
+        tripId={selectedTrip ?? 0}
+        onClose={() =>
+          setAddModalOpen(false)
+        }
+        onSuccess={async () => {
+          setRefreshKey(
+            (prev) => prev + 1
+          );
+
+          setAddModalOpen(false);
+        }}
+      />
+
+    </div>
+  </DashboardLayout>
+);
 }

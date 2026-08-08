@@ -1,164 +1,342 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
+import ItineraryHero from "@/components/itinerary/ItineraryHero";
+import ItineraryFilters from "@/components/itinerary/ItineraryFilters";
+import ItineraryCard from "@/components/itinerary/ItineraryCard";
+import ItinerarySkeleton from "@/components/itinerary/ItinerarySkeleton";
+import EmptyItinerary from "@/components/itinerary/EmptyItinerary";
+
 import { getTrips } from "@/services/trips.service";
+import { getAllActivities } from "@/services/activity.service";
 
 import { Trip } from "@/types/trip";
 
+import {
+  Map,
+  CalendarDays,
+  Sparkles,
+} from "lucide-react";
+
 export default function ItineraryPage() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [trips, setTrips] =
+    useState<Trip[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [
+    totalActivities,
+    setTotalActivities,
+  ] = useState(0);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [status, setStatus] =
+    useState("all");
+
+  const [sort, setSort] =
+    useState("latest");
+
+  const fetchTrips = async () => {
+    try {
+      setLoading(true);
+
+      const [
+        tripData,
+        activities,
+      ] = await Promise.all([
+        getTrips(),
+        getAllActivities(),
+      ]);
+
+      setTrips(tripData);
+
+      setTotalActivities(
+        activities.length
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const data = await getTrips();
-        setTrips(data);
-      } catch (error) {
-        console.error("Failed to fetch trips:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTrips();
   }, []);
 
+  const filteredTrips = useMemo(() => {
+    let data = [...trips];
+
+    if (search.trim()) {
+      const keyword =
+        search.toLowerCase();
+
+      data = data.filter(
+        (trip) =>
+          trip.source_airport.name
+            .toLowerCase()
+            .includes(keyword) ||
+          trip.destination_airport.name
+            .toLowerCase()
+            .includes(keyword) ||
+          trip.source_airport.iata_code
+            .toLowerCase()
+            .includes(keyword) ||
+          trip.destination_airport.iata_code
+            .toLowerCase()
+            .includes(keyword)
+      );
+    }
+
+    if (status !== "all") {
+      data = data.filter(
+        (trip) =>
+          trip.status.toLowerCase() ===
+          status.toLowerCase()
+      );
+    }
+
+    switch (sort) {
+      case "oldest":
+        data.sort(
+          (a, b) =>
+            new Date(
+              a.departure_date
+            ).getTime() -
+            new Date(
+              b.departure_date
+            ).getTime()
+        );
+        break;
+
+      case "budget":
+        data.sort(
+          (a, b) =>
+            Number(b.budget) -
+            Number(a.budget)
+        );
+        break;
+
+      default:
+        data.sort(
+          (a, b) =>
+            new Date(
+              b.departure_date
+            ).getTime() -
+            new Date(
+              a.departure_date
+            ).getTime()
+        );
+    }
+
+    return data;
+  }, [
+    trips,
+    search,
+    status,
+    sort,
+  ]);
+
+  const upcomingTrips =
+    trips.filter(
+      (trip) =>
+        trip.status.toLowerCase() ===
+        "confirmed"
+    ).length;
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900">
-            Trip Itineraries
-          </h1>
+      {/* Hero */}
 
-          <p className="mt-2 text-gray-500">
-            Select a trip to view and manage its itinerary.
+      <ItineraryHero
+        totalTrips={trips.length}
+        upcomingTrips={upcomingTrips}
+        totalActivities={
+          totalActivities
+        }
+      />
+
+      {/* Filters */}
+
+      <div className="mt-10">
+        <ItineraryFilters
+          search={search}
+          setSearch={setSearch}
+          status={status}
+          setStatus={setStatus}
+          sort={sort}
+          setSort={setSort}
+        />
+      </div>
+
+      {/* Itinerary List */}
+
+      <section className="mt-12">
+        <div className="mb-8">
+
+          <span
+            className="
+              inline-flex
+              items-center
+
+              rounded-full
+
+              border
+              border-cyan-500/20
+
+              bg-cyan-500/10
+
+              px-4
+              py-2
+
+              text-sm
+              font-semibold
+
+              text-cyan-300
+            "
+          >
+            Smart Travel Plans
+          </span>
+
+          <h2
+            className="
+              mt-5
+
+              text-4xl
+              font-bold
+
+              text-foreground
+            "
+          >
+            Your Itineraries
+          </h2>
+
+          <p
+            className="
+              mt-3
+
+              max-w-2xl
+
+              text-muted-foreground
+            "
+          >
+            Browse, search, organize and manage every
+            AI-generated travel itinerary from one
+            centralized dashboard.
           </p>
+
         </div>
 
-        {/* Loading */}
         {loading ? (
-          <div className="rounded-2xl bg-white p-8 shadow">
-            <p className="text-gray-500">Loading trips...</p>
-          </div>
-        ) : trips.length === 0 ? (
-          /* Empty State */
-          <div className="rounded-2xl bg-white p-12 text-center shadow">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              No Trips Found
-            </h2>
-
-            <p className="mt-3 text-gray-500">
-              Create your first trip to start planning your itinerary.
-            </p>
-
-            <Link
-              href="/trips"
-              className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
-            >
-              Go to My Trips
-            </Link>
-          </div>
+          <ItinerarySkeleton />
+        ) : filteredTrips.length === 0 ? (
+          <EmptyItinerary />
         ) : (
-          /* Trip Cards */
-          <div className="grid gap-6">
-            {trips.map((trip) => (
-              <div
+          <div className="space-y-8">
+            {filteredTrips.map((trip) => (
+              <ItineraryCard
                 key={trip.id}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                  {/* Left */}
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {trip.source_airport.iata_code} →{" "}
-                      {trip.destination_airport.iata_code}
-                    </h2>
-
-                    <p className="mt-2 text-gray-500">
-                      {trip.source_airport.name} →{" "}
-                      {trip.destination_airport.name}
-                    </p>
-
-                    <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                          Departure
-                        </p>
-
-                        <p className="mt-1 font-medium text-gray-900">
-                          {trip.departure_date}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                          Return
-                        </p>
-
-                        <p className="mt-1 font-medium text-gray-900">
-                          {trip.return_date || "-"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                          Travellers
-                        </p>
-
-                        <p className="mt-1 font-medium text-gray-900">
-                          {trip.travelers}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                          Budget
-                        </p>
-
-                        <p className="mt-1 font-semibold text-green-600">
-                          ₹
-                          {trip.budget
-                            ? Number(trip.budget).toLocaleString("en-IN")
-                            : "Not Set"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {trip.notes && (
-                      <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                        <p className="text-sm text-gray-700">
-                          {trip.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right */}
-                  <div className="flex flex-col items-start gap-4 lg:items-end">
-                    <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-                      {trip.status}
-                    </span>
-
-                    <Link
-                      href={`/itinerary/${trip.id}`}
-                      className="rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
-                    >
-                      Open Itinerary →
-                    </Link>
-                  </div>
-                </div>
-              </div>
+                trip={trip}
+              />
             ))}
           </div>
         )}
-      </div>
+      </section>
+
+      {/* Summary */}
+
+      <section className="mt-16">
+  <div className="grid gap-6 md:grid-cols-3">
+
+    <SummaryCard
+      title="Total Itineraries"
+      value={trips.length}
+      icon={<Map className="text-blue-500" size={24} />}
+    />
+
+    <SummaryCard
+      title="Upcoming Trips"
+      value={upcomingTrips}
+      icon={<CalendarDays className="text-violet-500" size={24} />}
+    />
+
+    <SummaryCard
+      title="Total Activities"
+      value={totalActivities}
+      icon={<Sparkles className="text-emerald-500" size={24} />}
+    />
+
+  </div>
+</section>
+
     </DashboardLayout>
+  );
+}
+
+interface SummaryCardProps {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  valueColor?: string;
+}
+
+function SummaryCard({
+  title,
+  value,
+  icon,
+  valueColor = "text-foreground",
+}: SummaryCardProps) {
+  return (
+    <div
+      className="
+        rounded-[30px]
+        border
+        border-border
+        bg-card
+        p-8
+        shadow-lg
+        transition-all
+        duration-300
+        hover:-translate-y-1
+        hover:shadow-xl
+      "
+    >
+      <div
+        className="
+          flex
+          h-12
+          w-12
+          items-center
+          justify-center
+          rounded-2xl
+          bg-muted
+        "
+      >
+        {icon}
+      </div>
+
+      <p
+        className="
+          mt-8
+          text-sm
+          font-medium
+          text-muted-foreground
+        "
+      >
+        {title}
+      </p>
+
+      <h3
+        className={`mt-3 text-5xl font-bold ${valueColor}`}
+      >
+        {value}
+      </h3>
+    </div>
   );
 }

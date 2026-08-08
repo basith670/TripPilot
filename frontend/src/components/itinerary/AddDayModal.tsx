@@ -1,6 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
+import {
+  Calendar,
+  FileText,
+  Hash,
+  Plus,
+  X,
+} from "lucide-react";
 
 import { createItineraryDay } from "@/services/itinerary.service";
 
@@ -19,6 +28,13 @@ export default function AddDayModal({
 }: AddDayModalProps) {
   const [loading, setLoading] = useState(false);
 
+  const [mounted, setMounted] =
+    useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const initialForm = {
     day_number: 1,
     date: "",
@@ -26,9 +42,10 @@ export default function AddDayModal({
     notes: "",
   };
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] =
+    useState(initialForm);
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
   const handleSubmit = async () => {
     try {
@@ -52,34 +69,142 @@ export default function AddDayModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
-      <div className="flex max-h-[95vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+  return createPortal(
+    <div
+      className="
+        fixed
+        inset-0
+        z-[9999]
+
+        flex
+        items-center
+        justify-center
+
+        bg-black/60
+
+        backdrop-blur-md
+
+        p-4
+      "
+    >
+      <div
+        className="
+          flex
+
+          w-full
+          max-w-2xl
+
+          max-h-[92vh]
+
+          flex-col
+
+          overflow-hidden
+
+          rounded-[32px]
+
+          border
+          border-border
+
+          bg-card
+
+          shadow-2xl
+        "
+      >
         {/* Header */}
 
-        <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
-          <h2 className="text-xl font-bold sm:text-2xl">
-            Add Itinerary Day
-          </h2>
+        <div
+          className="
+            sticky
+            top-0
+            z-10
 
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="text-3xl text-gray-500 transition hover:text-red-600 disabled:opacity-50"
-          >
-            ×
-          </button>
+            bg-gradient-to-r
+            from-blue-600
+            via-cyan-600
+            to-indigo-600
+
+            px-8
+            py-6
+
+            text-white
+          "
+        >
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <span
+                className="
+                  rounded-full
+                  bg-white/20
+                  px-4
+                  py-2
+                  text-sm
+                  font-semibold
+                "
+              >
+                New Day
+              </span>
+
+              <h2 className="mt-4 text-3xl font-bold">
+                Add Itinerary Day
+              </h2>
+
+              <p className="mt-2 text-blue-100">
+                Organize your trip one day at a time.
+              </p>
+
+            </div>
+
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="
+                flex
+                h-12
+                w-12
+                items-center
+                justify-center
+
+                rounded-2xl
+
+                bg-white/10
+
+                transition
+
+                hover:bg-white/20
+              "
+            >
+              <X size={22} />
+            </button>
+
+          </div>
+
         </div>
 
-        {/* Scrollable Body */}
+        {/* Body */}
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className="space-y-5">
+        <div
+          className="
+            flex-1
+
+            overflow-y-auto
+
+            p-8
+          "
+        >
+          <div className="space-y-6">
+
             {/* Day Number */}
 
             <div>
-              <label className="mb-2 block font-medium">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <Hash size={18} />
+
                 Day Number
+
               </label>
 
               <input
@@ -92,15 +217,41 @@ export default function AddDayModal({
                     day_number: Number(e.target.value),
                   })
                 }
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
 
             {/* Date */}
 
             <div>
-              <label className="mb-2 block font-medium">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <Calendar size={18} />
+
                 Date
+
               </label>
 
               <input
@@ -112,15 +263,41 @@ export default function AddDayModal({
                     date: e.target.value,
                   })
                 }
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
 
             {/* Title */}
 
             <div>
-              <label className="mb-2 block font-medium">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <Plus size={18} />
+
                 Title
+
               </label>
 
               <input
@@ -132,15 +309,41 @@ export default function AddDayModal({
                   })
                 }
                 placeholder="Travel Day"
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
 
             {/* Notes */}
 
             <div>
-              <label className="mb-2 block font-medium">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <FileText size={18} />
+
                 Notes
+
               </label>
 
               <textarea
@@ -153,34 +356,123 @@ export default function AddDayModal({
                   })
                 }
                 placeholder="Additional notes..."
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
+
           </div>
+
         </div>
 
         {/* Footer */}
 
-        <div className="border-t px-4 py-4 sm:px-6">
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button
-              onClick={onClose}
-              disabled={loading}
-              className="w-full rounded-lg border px-5 py-3 transition hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
-            >
-              Cancel
-            </button>
+        <div
+          className="
+            sticky
+            bottom-0
 
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full rounded-lg bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
-            >
-              {loading ? "Creating..." : "Create Day"}
-            </button>
-          </div>
+            flex
+            justify-end
+            gap-4
+
+            border-t
+            border-border
+
+            bg-card
+
+            px-8
+            py-6
+          "
+        >
+
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="
+              rounded-2xl
+
+              border
+              border-border
+
+              bg-background
+
+              px-6
+              py-3
+
+              font-semibold
+
+              text-foreground
+
+              transition
+
+              hover:bg-muted
+
+              disabled:opacity-50
+            "
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="
+              rounded-2xl
+
+              bg-gradient-to-r
+              from-blue-600
+              via-cyan-600
+              to-indigo-600
+
+              px-7
+              py-3
+
+              font-semibold
+
+              text-white
+
+              shadow-lg
+
+              transition-all
+
+              hover:-translate-y-0.5
+              hover:shadow-xl
+
+              disabled:opacity-50
+              disabled:hover:translate-y-0
+            "
+          >
+            {loading
+              ? "Creating..."
+              : "Create Day"}
+          </button>
+
         </div>
+
       </div>
-    </div>
+
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
+import {
+  Calendar,
+  FileText,
+  Pencil,
+  X,
+} from "lucide-react";
 
 import { updateItineraryDay } from "@/services/itinerary.service";
 import { ItineraryDay } from "@/types/itinerary";
@@ -20,13 +28,21 @@ export default function EditDayModal({
   onClose,
   onSuccess,
 }: Props) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [mounted, setMounted] =
+    useState(false);
 
   const [form, setForm] = useState({
     title: "",
     date: "",
     notes: "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen && day) {
@@ -38,47 +54,14 @@ export default function EditDayModal({
     }
   }, [isOpen, day]);
 
-  // Disable body scroll
-  useEffect(() => {
-    if (!isOpen) return;
-
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isOpen]);
-
-  // ESC key closes modal
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !loading) {
-        handleClose();
-      }
-    };
-
-    if (isOpen) {
-      window.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, loading]);
-
   const handleClose = () => {
     if (loading) return;
-
-    setForm({
-      title: "",
-      date: "",
-      notes: "",
-    });
 
     onClose();
   };
 
-  if (!isOpen || !day) return null;
+  if (!mounted || !isOpen || !day)
+    return null;
 
   const handleSubmit = async () => {
     if (!form.title.trim()) {
@@ -100,7 +83,9 @@ export default function EditDayModal({
         notes: form.notes,
       });
 
-      toast.success("Day updated successfully.");
+      toast.success(
+        "Day updated successfully."
+      );
 
       await onSuccess();
 
@@ -108,50 +93,153 @@ export default function EditDayModal({
     } catch (error) {
       console.error(error);
 
-      toast.error("Failed to update day.");
+      toast.error(
+        "Failed to update day."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  return (
+  return createPortal(
     <div
-      onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4"
+      className="
+        fixed
+        inset-0
+        z-[9999]
+
+        flex
+        items-center
+        justify-center
+
+        bg-black/60
+
+        backdrop-blur-md
+
+        p-4
+      "
     >
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="
+          flex
+
+          w-full
+          max-w-3xl
+
+          max-h-[92vh]
+
+          flex-col
+
+          overflow-hidden
+
+          rounded-[32px]
+
+          border
+          border-border
+
+          bg-card
+
+          shadow-2xl
+        "
       >
         {/* Header */}
 
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-5">
-          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-            Edit Day
-          </h2>
+        <div
+          className="
+            sticky
+            top-0
+            z-10
 
-          <button
-            onClick={handleClose}
-            disabled={loading}
-            className="text-3xl font-light text-gray-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            ×
-          </button>
+            bg-gradient-to-r
+            from-blue-600
+            via-cyan-600
+            to-indigo-600
+
+            px-8
+            py-6
+
+            text-white
+          "
+        >
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <span
+                className="
+                  rounded-full
+                  bg-white/20
+                  px-4
+                  py-2
+                  text-sm
+                  font-semibold
+                "
+              >
+                Edit Day
+              </span>
+
+              <h2 className="mt-4 text-3xl font-bold">
+                Update Itinerary Day
+              </h2>
+
+              <p className="mt-2 text-blue-100">
+                Modify your itinerary day information.
+              </p>
+
+            </div>
+
+            <button
+              onClick={handleClose}
+              disabled={loading}
+              className="
+                flex
+                h-12
+                w-12
+                items-center
+                justify-center
+
+                rounded-2xl
+
+                bg-white/10
+
+                transition
+
+                hover:bg-white/20
+
+                disabled:opacity-50
+              "
+            >
+              <X size={22} />
+            </button>
+
+          </div>
+
         </div>
 
         {/* Body */}
 
-        <div className="flex-1 overflow-y-auto px-5 py-6">
-          <div className="space-y-6">
-            {/* Day Title */}
+        <div
+          className="
+            flex-1
+            overflow-y-auto
+            p-8
+          "
+        >
+          <div className="grid gap-6">
+
+            {/* Title */}
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <Pencil size={18} />
+
                 Day Title
+
               </label>
 
               <input
-                type="text"
                 value={form.title}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -159,16 +247,42 @@ export default function EditDayModal({
                     title: e.target.value,
                   }))
                 }
-                placeholder="Day Title"
-                className="w-full rounded-lg border border-gray-300 p-3 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                placeholder="Arrival in Dubai"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
 
             {/* Date */}
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <Calendar size={18} />
+
                 Date
+
               </label>
 
               <input
@@ -180,55 +294,166 @@ export default function EditDayModal({
                     date: e.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 p-3 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
+
             </div>
 
             {/* Notes */}
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+
+              <label className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+
+                <FileText size={18} />
+
                 Notes
+
               </label>
 
               <textarea
-                rows={7}
+                rows={6}
                 value={form.notes}
-                placeholder="Add notes for this itinerary day..."
+                placeholder="Write notes for this day..."
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
                     notes: e.target.value,
                   }))
                 }
-                className="min-h-44 w-full rounded-lg border border-gray-300 p-3 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="
+                  w-full
+
+                  rounded-2xl
+
+                  border
+                  border-border
+
+                  bg-background
+
+                  px-5
+                  py-3
+
+                  text-foreground
+
+                  outline-none
+
+                  transition
+
+                  focus:border-blue-500
+                "
               />
             </div>
-          </div>
+
+            </div>
         </div>
 
         {/* Footer */}
 
-        <div className="sticky bottom-0 border-t bg-white px-5 py-5">
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button
-              onClick={handleClose}
-              disabled={loading}
-              className="w-full rounded-lg border border-gray-300 px-5 py-3 font-medium transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            >
-              Cancel
-            </button>
+        <div
+          className="
+            sticky
+            bottom-0
 
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full rounded-lg bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            >
-              {loading ? "Updating..." : "Update Day"}
-            </button>
-          </div>
+            flex
+            justify-end
+            gap-4
+
+            border-t
+            border-border
+
+            bg-card
+
+            px-8
+            py-6
+          "
+        >
+          <button
+            onClick={handleClose}
+            disabled={loading}
+            className="
+              rounded-2xl
+
+              border
+              border-border
+
+              bg-background
+
+              px-6
+              py-3
+
+              font-semibold
+
+              text-foreground
+
+              transition
+
+              hover:bg-muted
+
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="
+              rounded-2xl
+
+              bg-gradient-to-r
+              from-blue-600
+              via-cyan-600
+              to-indigo-600
+
+              px-7
+              py-3
+
+              font-semibold
+
+              text-white
+
+              shadow-lg
+
+              transition-all
+
+              hover:-translate-y-0.5
+              hover:shadow-xl
+
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+              disabled:hover:translate-y-0
+            "
+          >
+            {loading
+              ? "Updating..."
+              : "Update Day"}
+          </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

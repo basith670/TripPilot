@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import FlightSkeleton from "./FlightSkeleton";
+
+import EmptyFlights from "./EmptyFlights";
+
 import FlightCard from "./FlightCard";
 import FlightDetailsModal from "./FlightDetailsModal";
 import EditFlightModal from "./EditFlightModal";
@@ -25,12 +29,18 @@ import { toast } from "sonner";
 import BoardingPassModal from "@/features/flights/components/BoardingPassModal";
 
 interface FlightListProps {
-  tripId: number;
-}
+    tripId: number;
+    search: string;
+    status: string;
+    sort: string;
+  }
 
-export default function FlightList({
-  tripId,
-}: FlightListProps) {
+  export default function FlightList({
+    tripId,
+    search,
+    status,
+    sort,
+  }: FlightListProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -215,42 +225,59 @@ const [boardingPassOpen, setBoardingPassOpen] =
   };
 
   if (loading) {
-    return (
-      <div className="rounded-2xl bg-white p-10 text-center shadow">
-        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-
-        <p className="text-gray-600">
-          Loading flights...
-        </p>
-      </div>
-    );
+    return <FlightSkeleton />;
   }
 
-  if (flights.length === 0) {
+  const filteredFlights = [...flights]
+  .filter((flight) => {
+    if (!search.trim()) return true;
+
+    const query = search.toLowerCase();
+
     return (
-      <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-12 text-center">
-
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-4xl">
-          ✈️
-        </div>
-
-        <h3 className="text-2xl font-semibold text-gray-900">
-          No Flights Found
-        </h3>
-
-        <p className="mt-3 text-gray-500">
-          Add a flight to this trip to get started.
-        </p>
-
-      </div>
+      flight.airline_name.toLowerCase().includes(query) ||
+      flight.flight_number.toLowerCase().includes(query) ||
+      flight.source_iata.toLowerCase().includes(query) ||
+      flight.destination_iata.toLowerCase().includes(query)
     );
+  })
+  .filter((flight) => {
+    if (status === "all") return true;
+
+    return (
+      flight.status.toLowerCase() === status.toLowerCase()
+    );
+  })
+  .sort((a, b) => {
+    switch (sort) {
+      case "price":
+        return Number(b.price) - Number(a.price);
+
+      case "duration":
+        return b.duration_minutes - a.duration_minutes;
+
+      case "oldest":
+        return (
+          new Date(a.departure_datetime).getTime() -
+          new Date(b.departure_datetime).getTime()
+        );
+
+      default:
+        return (
+          new Date(b.departure_datetime).getTime() -
+          new Date(a.departure_datetime).getTime()
+        );
+    }
+  });
+
+  if (filteredFlights.length === 0) {
+    return <EmptyFlights />;
   }
 
   return (
     <>
       <div className="space-y-6">
-        {flights.map(
-          (flight) => (
+      {filteredFlights.map((flight) => (
             <FlightCard
               key={flight.id}
               flight={flight}

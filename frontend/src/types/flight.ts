@@ -56,3 +56,47 @@ export interface Airline {
     created_at: string;
     updated_at: string;
   }
+  
+  /*
+  |--------------------------------------------------------------------------
+  | AI Generated Flight
+  |--------------------------------------------------------------------------
+  |
+  | Used by the AI Trip Planner before the generated flight is saved
+  | as a database Flight.
+  |
+  */
+  
+  export interface GeneratedFlight {
+    airline: string;
+    airline_name?: string;
+    airline_code: string;
+    airline_logo?: string;
+  
+    flight_number: string;
+  
+    departure_airport: string;
+    arrival_airport: string;
+  
+    departure_terminal?: string;
+    arrival_terminal?: string;
+  
+    departure_time: string;
+    arrival_time: string;
+  
+    duration: string;
+  
+    distance_km?: number;
+  
+    price: number;
+  
+    stops: number;
+  
+    aircraft: string;
+  
+    baggage: string;
+  
+    cabin_class: string;
+  
+    reason?: string;
+  }

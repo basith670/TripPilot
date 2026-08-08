@@ -2,6 +2,11 @@
 
 import { Flight } from "@/types/flight";
 
+import {
+  Plane,
+  PlaneTakeoff,
+} from "lucide-react";
+
 interface FlightCardProps {
   flight: Flight;
 
@@ -41,197 +46,457 @@ export default function FlightCard({
   const getStatusColor = () => {
     switch (flight.status) {
       case "SCHEDULED":
-        return "bg-green-100 text-green-700";
+        return "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300";
 
       case "BOARDING":
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300";
 
       case "DELAYED":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-300";
 
       case "LANDED":
-        return "bg-gray-100 text-gray-700";
+        return "bg-muted text-muted-foreground";
 
       default:
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300";
     }
   };
 
   return (
-    <div
-      className={`rounded-2xl p-4 shadow-sm transition-all hover:shadow-lg sm:p-6 ${
-        isSelected
-          ? "border-2 border-blue-600 bg-blue-50"
-          : "border border-gray-200 bg-white"
-      }`}
+    <article
+      className={`
+        group
+        relative
+        overflow-hidden
+  
+        rounded-[32px]
+  
+        border
+  
+        ${
+          isSelected
+            ? "border-blue-500 bg-blue-50/70 dark:bg-blue-500/10"
+            : "border-border bg-card/90"
+        }
+  
+        backdrop-blur-xl
+  
+        shadow-lg
+  
+        transition-all
+        duration-300
+  
+        hover:-translate-y-1
+        hover:shadow-2xl
+      `}
     >
-      {/* Header */}
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-        <div className="flex items-center gap-4">
-
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gray-100">
-            <img
-              src={flight.airline_logo}
-              alt={flight.airline_name}
-              className="h-10 w-10 object-contain"
-            />
+      {/* Selected Accent */}
+  
+      {isSelected && (
+        <div className="absolute left-0 top-0 h-full w-1.5 bg-blue-600" />
+      )}
+  
+      <div className="p-8">
+  
+        {/* Header */}
+  
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+  
+          <div className="flex items-center gap-5">
+  
+            <div
+              className="
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
+  
+                rounded-2xl
+  
+                bg-muted
+  
+                shadow-sm
+              "
+            >
+                {flight.airline_logo ? (
+                <img
+                    src={flight.airline_logo}
+                    alt={flight.airline_name}
+                    className="h-10 w-10 object-contain"
+                />
+                ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-sm font-bold">
+                    {flight.airline_name?.slice(0, 2).toUpperCase() || "✈"}
+                </div>
+                )}
+            </div>
+  
+            <div>
+  
+              <div className="flex items-center gap-3">
+  
+                <h2 className="text-2xl font-bold text-foreground">
+                  {flight.airline_name}
+                </h2>
+  
+                {isSelected && (
+                  <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+                    Selected
+                  </span>
+                )}
+  
+              </div>
+  
+              <p className="mt-1 text-muted-foreground">
+                Flight {flight.flight_number}
+              </p>
+  
+            </div>
+  
           </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">
-              {flight.airline_name}
-            </h3>
-
-            <p className="text-sm text-gray-500">
-              {flight.flight_number}
-            </p>
-          </div>
-
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-
-          {isSelected && (
-            <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-              ✓ Selected
+  
+          <div className="flex flex-wrap items-center gap-3">
+  
+            <span
+              className={`
+                rounded-full
+                px-4
+                py-2
+                text-sm
+                font-semibold
+                ${getStatusColor()}
+              `}
+            >
+              {flight.status}
             </span>
-          )}
-
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor()}`}
-          >
-            {flight.status}
-          </span>
-
+  
+          </div>
+  
+        </div>
+  
+        {/* Timeline */}
+  
+        <div className="my-10">
+  
+          <div className="grid grid-cols-3 items-center">
+  
+            {/* Departure */}
+  
+            <div>
+  
+              <h3 className="text-4xl font-bold text-foreground">
+                {departureTime}
+              </h3>
+  
+              <p className="mt-2 text-2xl font-bold text-blue-700 dark:text-blue-300">
+                {flight.source_iata}
+              </p>
+  
+            </div>
+  
+            {/* Center */}
+  
+            <div className="flex flex-col items-center">
+  
+              <p className="mb-3 text-sm font-semibold text-muted-foreground">
+                {flight.duration_display}
+              </p>
+  
+              <div className="flex w-full items-center">
+  
+                <div className="h-px flex-1 bg-border" />
+  
+                <div
+                  className="
+                    mx-4
+  
+                    rounded-full
+  
+                    bg-blue-100
+                    dark:bg-blue-500/15
+  
+                    p-3
+  
+                    text-blue-600
+                    dark:text-blue-400
+                  "
+                >
+                  <PlaneTakeoff size={20} />
+                </div>
+  
+                <div className="h-px flex-1 bg-border" />
+  
+              </div>
+  
+              <p className="mt-3 text-sm text-muted-foreground">
+  
+                {flight.stops === 0
+                  ? "Non-stop"
+                  : `${flight.stops} Stop${flight.stops > 1 ? "s" : ""}`}
+  
+              </p>
+  
+            </div>
+  
+            {/* Arrival */}
+  
+            <div className="text-right">
+  
+              <h3 className="text-4xl font-bold text-foreground">
+                {arrivalTime}
+              </h3>
+  
+              <p className="mt-2 text-2xl font-bold text-blue-700 dark:text-blue-300">
+                {flight.destination_iata}
+              </p>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+  
+        {/* Flight Information */}
+  
+        <div className="grid gap-5 rounded-2xl bg-muted p-5 md:grid-cols-3">
+  
+          <div>
+  
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Cabin
+            </p>
+  
+            <p className="mt-2 font-semibold text-foreground">
+  
+              {flight.cabin_class.replaceAll("_", " ")}
+  
+            </p>
+  
+          </div>
+  
+          <div>
+  
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Price
+            </p>
+  
+            <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+  
+              ₹
+              {Number(flight.price).toLocaleString("en-IN")}
+  
+            </p>
+  
+          </div>
+  
+          <div>
+  
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Route
+            </p>
+  
+            <p className="mt-2 font-semibold text-foreground">
+  
+              {flight.source_iata} → {flight.destination_iata}
+  
+            </p>
+  
+          </div>
+  
         </div>
 
-      </div>
+        {/* Footer */}
 
-      {/* Timeline */}
+        <div
+          className="
+            mt-8
+            flex
+            flex-col
+            gap-6
 
-      <div className="my-8 grid grid-cols-3 items-center gap-3">
+            border-t
+            border-border
 
-        {/* Departure */}
+            pt-6
 
-        <div className="text-left">
+            lg:flex-row
+            lg:items-center
+            lg:justify-between
+          "
+        >
+          {/* Flight Details */}
 
-          <p className="text-3xl font-bold">
-            {departureTime}
-          </p>
+          <div className="flex flex-wrap items-center gap-5">
 
-          <p className="mt-2 text-xl font-semibold">
-            {flight.source_iata}
-          </p>
+            <div
+              className="
+                rounded-xl
+                bg-muted
+                px-4
+                py-3
+              "
+            >
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Airline
+              </p>
 
-        </div>
+              <p className="mt-1 font-semibold text-foreground">
+                {flight.airline_name}
+              </p>
+            </div>
 
-        {/* Duration */}
+            <div
+              className="
+                rounded-xl
+                bg-muted
+                px-4
+                py-3
+              "
+            >
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Flight
+              </p>
 
-        <div className="flex flex-col items-center">
+              <p className="mt-1 font-semibold text-foreground">
+                {flight.flight_number}
+              </p>
+            </div>
 
-          <div className="w-full border-t border-dashed border-gray-300"></div>
+            <div
+              className="
+                rounded-xl
+                bg-muted
+                px-4
+                py-3
+              "
+            >
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Stops
+              </p>
 
-          <div className="my-3 text-center">
+              <p className="mt-1 font-semibold text-foreground">
 
-            <p className="text-sm font-semibold text-gray-700">
-              {flight.duration_display}
-            </p>
+                {flight.stops === 0
+                  ? "Non-stop"
+                  : `${flight.stops} Stop${flight.stops > 1 ? "s" : ""}`}
 
-            <p className="text-xs text-gray-500">
-              {flight.stops === 0
-                ? "Non-stop"
-                : `${flight.stops} Stop${
-                    flight.stops > 1 ? "s" : ""
-                  }`}
-            </p>
+              </p>
+
+            </div>
 
           </div>
 
-          <div className="w-full border-t border-dashed border-gray-300"></div>
+          {/* Actions */}
 
-        </div>
+          <div className="flex flex-wrap gap-3">
 
-        {/* Arrival */}
+            <button
+              onClick={() => onView?.(flight)}
+              className="
+                rounded-xl
+                border
+                border-border
+                bg-card
 
-        <div className="text-right">
+                px-5
+                py-3
 
-          <p className="text-3xl font-bold">
-            {arrivalTime}
-          </p>
+                font-medium
+                text-foreground
 
-          <p className="mt-2 text-xl font-semibold">
-            {flight.destination_iata}
-          </p>
+                transition-all
+
+                hover:bg-accent
+              "
+            >
+              Details
+            </button>
+
+            <button
+              onClick={() => onEdit?.(flight)}
+              className="
+                rounded-xl
+                border
+                border-amber-200
+                dark:border-amber-500/30
+                bg-amber-50
+                dark:bg-amber-500/10
+
+                px-5
+                py-3
+
+                font-medium
+                text-amber-700
+                dark:text-amber-300
+
+                transition-all
+
+                hover:bg-amber-100
+                dark:hover:bg-amber-500/20
+              "
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => onDelete?.(flight)}
+              className="
+                rounded-xl
+                border
+                border-red-200
+                dark:border-red-500/30
+                bg-red-50
+                dark:bg-red-500/10
+
+                px-5
+                py-3
+
+                font-medium
+                text-red-700
+                dark:text-red-300
+
+                transition-all
+
+                hover:bg-red-100
+                dark:hover:bg-red-500/20
+              "
+            >
+              Delete
+            </button>
+
+            <button
+              disabled={isSelected}
+              onClick={() => onSelect?.(flight)}
+              className={`
+                rounded-xl
+
+                px-6
+                py-3
+
+                font-semibold
+                text-white
+
+                transition-all
+
+                ${
+                  isSelected
+                    ? "cursor-not-allowed bg-emerald-600"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }
+              `}
+            >
+              {isSelected
+                ? "✓ Selected"
+                : "Select Flight"}
+            </button>
+
+          </div>
 
         </div>
 
       </div>
 
-      {/* Footer */}
-
-      <div className="flex flex-col gap-5 border-t pt-5 lg:flex-row lg:items-center lg:justify-between">
-
-        <div>
-
-          <p className="text-3xl font-bold text-blue-600">
-            ₹
-            {Number(flight.price).toLocaleString(
-              "en-IN"
-            )}
-          </p>
-
-          <p className="mt-1 text-sm text-gray-500">
-            {flight.cabin_class.replaceAll(
-              "_",
-              " "
-            )}
-          </p>
-
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 lg:flex">
-
-          <button
-            onClick={() => onView?.(flight)}
-            className="rounded-xl border border-gray-300 px-4 py-3 font-medium transition hover:bg-gray-100"
-          >
-            Details
-          </button>
-
-          <button
-            onClick={() => onEdit?.(flight)}
-            className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-medium text-amber-700 transition hover:bg-amber-100"
-          >
-            Edit
-          </button>
-
-          <button
-            onClick={() => onDelete?.(flight)}
-            className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 font-medium text-red-700 transition hover:bg-red-100"
-          >
-            Delete
-          </button>
-
-          <button
-            disabled={isSelected}
-            onClick={() => onSelect?.(flight)}
-            className={`rounded-xl px-5 py-3 font-medium text-white transition ${
-              isSelected
-                ? "cursor-not-allowed bg-green-600"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isSelected
-              ? "✓ Selected"
-              : "Select"}
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
+    </article>
   );
 }
