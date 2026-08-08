@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_filters",
 
     # Third-party Apps
     "rest_framework",
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "drf_spectacular",
+    
 
     # Local Apps
     "apps.accounts",
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
     "apps.dashboard",
     "apps.ai",
     "apps.flights",
+    "apps.hotels",
 ]
 
 MIDDLEWARE = [
@@ -144,10 +147,17 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
+    "DEFAULT_SCHEMA_CLASS":
+        "drf_spectacular.openapi.AutoSchema",
+
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ),
 }
 
 SIMPLE_JWT = {
@@ -196,7 +206,15 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 GEMINI_API_KEY = config("GEMINI_API_KEY")
+
 GEMINI_MODEL = config(
     "GEMINI_MODEL",
     default="gemini-2.5-flash-lite",
+)
+
+RESEND_API_KEY = config("RESEND_API_KEY")
+
+FRONTEND_URL = config(
+    "FRONTEND_URL",
+    default="http://localhost:3000",
 )

@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
 
 from apps.travel.models import Airport
+
 
 class Trip(models.Model):
     class CabinClass(models.TextChoices):
@@ -41,8 +44,29 @@ class Trip(models.Model):
         blank=True,
     )
 
-    travelers = models.PositiveIntegerField(
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+    )
+
+    overview = models.TextField(
+        blank=True,
+    )
+
+    adults = models.PositiveIntegerField(
         default=1,
+    )
+
+    children = models.PositiveIntegerField(
+        default=0,
+    )
+
+    infants = models.PositiveIntegerField(
+        default=0,
+    )
+
+    seniors = models.PositiveIntegerField(
+        default=0,
     )
 
     cabin_class = models.CharField(
@@ -65,11 +89,19 @@ class Trip(models.Model):
     )
 
     selected_flight = models.ForeignKey(
-    "flights.Flight",
-    on_delete=models.SET_NULL,
-    related_name="selected_for_trips",
-    null=True,
-    blank=True,
+        "flights.Flight",
+        on_delete=models.SET_NULL,
+        related_name="selected_for_trips",
+        null=True,
+        blank=True,
+    )
+
+    selected_hotel = models.ForeignKey(
+        "hotels.Hotel",
+        on_delete=models.SET_NULL,
+        related_name="selected_for_trips",
+        null=True,
+        blank=True,
     )
 
     notes = models.TextField(
@@ -84,8 +116,23 @@ class Trip(models.Model):
         auto_now=True,
     )
 
+    @property
+    def travelers(self):
+        return (
+            self.adults
+            + self.children
+            + self.infants
+            + self.seniors
+        )
+
     class Meta:
         ordering = ["-created_at"]
+
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["departure_date"]),
+        ]
 
     def __str__(self):
         return (
@@ -125,10 +172,15 @@ class ItineraryDay(models.Model):
 
     class Meta:
         ordering = ["day_number"]
-        unique_together = ("trip", "day_number")
+        unique_together = (
+            "trip",
+            "day_number",
+        )
 
     def __str__(self):
-        return f"{self.trip} - Day {self.day_number}"
+        return (
+            f"{self.trip} - Day {self.day_number}"
+        )
 
 
 class Activity(models.Model):
@@ -178,8 +230,27 @@ class Activity(models.Model):
         max_length=200,
     )
 
+    description = models.TextField(
+        blank=True,
+    )
+
     location = models.CharField(
         max_length=200,
+        blank=True,
+    )
+
+    city = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    country = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    transport = models.CharField(
+        max_length=100,
         blank=True,
     )
 
@@ -225,8 +296,59 @@ class Activity(models.Model):
             "start_time",
         ]
 
+        indexes = [
+            models.Index(fields=["category"]),
+            models.Index(fields=["priority"]),
+        ]
+
     def __str__(self):
         return (
             f"{self.title} "
             f"({self.category})"
+        )
+
+
+class LayoverTrip(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="layover_trips",
+    )
+
+    departure_airport = models.CharField(max_length=10)
+
+    layover_airport = models.CharField(max_length=10)
+
+    destination_airport = models.CharField(max_length=10)
+
+    arrival_date = models.DateField()
+
+    arrival_time = models.TimeField()
+
+    departure_date = models.DateField()
+
+    departure_time = models.TimeField()
+
+    budget = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    travel_style = models.CharField(
+        max_length=30,
+    )
+
+    ai_result = models.JSONField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return (
+            f"{self.user} - "
+            f"{self.layover_airport}"
         )

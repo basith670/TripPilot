@@ -6,31 +6,146 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.flights.models import Flight
+from apps.hotels.models import Hotel
 
-from .models import Activity, Trip
-from .serializers import TripSerializer
+from .models import Activity, Trip, LayoverTrip
+from .serializers import (
+    TripSerializer,
+    SaveLayoverTripSerializer,
+    LayoverTripSerializer,
+)
 from .services import save_ai_itinerary
+from .trip_services.save_generated_trip import save_generated_trip
+from apps.flights.services.flight_generator import FlightGenerator
 
 
 class TripViewSet(viewsets.ModelViewSet):
+
     serializer_class = TripSerializer
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+
         return (
+
             Trip.objects.filter(user=self.request.user)
+
             .select_related(
+
                 "source_airport",
+
                 "destination_airport",
-                "selected_flight",
+
+                "selected_flight__airline",
+
+                "selected_hotel",
+
             )
+
             .prefetch_related(
+
+                "days",
+
                 "days__activities",
+
+                "flights",
+
+                "hotels",
+
             )
+
         )
 
     def perform_create(self, serializer):
+
         serializer.save(user=self.request.user)
+
+    # ==========================================================
+
+    # SAVE GENERATED TRIP
+
+    # ==========================================================
+
+    @action(
+
+        detail=False,
+
+        methods=["post"],
+
+        url_path="save-generated-trip",
+
+    )
+
+    def save_generated_trip_action(self, request):
+
+        planner = request.data.get("planner")
+
+        ai_trip = request.data.get("trip")
+
+        generated_flight = FlightGenerator.generate(
+            planner["source_airport"],
+            planner["destination_airport"],
+            planner["cabin_class"],
+        )
+
+        if generated_flight is None:
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "No flight route exists "
+                        "between these airports."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ai_trip["flight"] = generated_flight
+
+        if not planner or not ai_trip:
+
+            return Response(
+
+                {
+
+                    "success": False,
+
+                    "message": "Planner data and AI trip are required.",
+
+                },
+
+                status=status.HTTP_400_BAD_REQUEST,
+
+            )
+
+        trip = save_generated_trip(
+
+            user=request.user,
+
+            planner=planner,
+
+            ai_trip=ai_trip,
+
+        )
+
+        serializer = self.get_serializer(trip)
+
+        return Response(
+
+            {
+
+                "success": True,
+
+                "message": "Trip created successfully.",
+
+                "trip": serializer.data,
+
+            },
+
+            status=status.HTTP_201_CREATED,
+
+        )
 
     # ==========================================================
     # SELECT FLIGHT
@@ -79,6 +194,59 @@ class TripViewSet(viewsets.ModelViewSet):
             {
                 "success": True,
                 "message": "Flight selected successfully.",
+                "trip": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+
+    # ==========================================================
+    # SELECT HOTEL
+    # ==========================================================
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="select-hotel",
+    )
+    def select_hotel(self, request, pk=None):
+        trip = self.get_object()
+
+        hotel_id = request.data.get("hotel_id")
+
+        if not hotel_id:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Hotel ID is required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            hotel = Hotel.objects.get(
+                id=hotel_id,
+                trip=trip,
+            )
+
+        except Hotel.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Hotel not found for this trip.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        trip.selected_hotel = hotel
+        trip.save(update_fields=["selected_hotel"])
+
+        serializer = self.get_serializer(trip)
+
+        return Response(
+            {
+                "success": True,
+                "message": "Hotel selected successfully.",
                 "trip": serializer.data,
             },
             status=status.HTTP_200_OK,
@@ -134,6 +302,8 @@ class TripViewSet(viewsets.ModelViewSet):
         activities = Activity.objects.filter(
             itinerary_day__trip=trip
         )
+
+    
 
         # -------------------------------------------------
         # Overall Totals
@@ -273,3 +443,96 @@ class TripViewSet(viewsets.ModelViewSet):
                 "message": budget_message,
             }
         )
+        # ==========================================================
+    # DASHBOARD
+    # ==========================================================
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="dashboard",
+    )
+    def dashboard(self, request, pk=None):
+        trip = self.get_object()
+
+        serializer = self.get_serializer(trip)
+
+        return Response(
+            {
+                "success": True,
+                "trip": serializer.data,
+            }
+        )
+
+    # ==========================================================
+    # RECENT TRIPS
+    # ==========================================================
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="recent",
+    )
+    def recent(self, request):
+        trips = self.get_queryset()[:5]
+
+        serializer = self.get_serializer(
+            trips,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import LayoverTrip
+from .serializers import SaveLayoverTripSerializer
+
+
+class SaveLayoverTripAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = SaveLayoverTripSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        planner = serializer.validated_data["planner"]
+        result = serializer.validated_data["result"]
+
+        trip = LayoverTrip.objects.create(
+            user=request.user,
+            departure_airport=planner["departureAirport"],
+            layover_airport=planner["layoverAirport"],
+            destination_airport=planner["destinationAirport"],
+            arrival_date=planner["arrivalDate"],
+            arrival_time=planner["arrivalTime"],
+            departure_date=planner["departureDate"],
+            departure_time=planner["departureTime"],
+            budget=planner["budget"],
+            travel_style=planner["travelStyle"],
+            ai_result=result,
+        )
+
+        return Response(
+            {
+                "success": True,
+                "id": trip.id,
+                "message": "Layover trip saved successfully.",
+            }
+        )
+
+
+class LayoverTripViewSet(viewsets.ModelViewSet):
+    serializer_class = LayoverTripSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return LayoverTrip.objects.filter(
+            user=self.request.user
+        ).order_by("-created_at")

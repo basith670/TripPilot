@@ -54,6 +54,17 @@ class UserProfile(models.Model):
         default="en",
     )
 
+    # Theme Preference
+    theme = models.CharField(
+        max_length=10,
+        choices=[
+            ("light", "Light"),
+            ("dark", "Dark"),
+            ("system", "System"),
+        ],
+        default="system",
+    )
+
     is_verified = models.BooleanField(
         default=False,
     )

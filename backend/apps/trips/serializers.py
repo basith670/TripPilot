@@ -3,7 +3,9 @@ from datetime import date
 from rest_framework import serializers
 
 from apps.travel.models import Airport
-from apps.flights.models import Flight
+from apps.travel.serializers import AirportSerializer
+from apps.flights.serializers import FlightSerializer
+from apps.hotels.serializers import HotelSerializer
 
 from .models import (
     Trip,
@@ -12,23 +14,19 @@ from .models import (
 )
 
 
-class AirportMiniSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Airport
-        fields = (
-            "id",
-            "name",
-            "iata_code",
-        )
-
-
 class ActivitySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Activity
+
         fields = (
             "id",
             "title",
+            "description",
             "location",
+            "city",
+            "country",
+            "transport",
             "start_time",
             "end_time",
             "estimated_cost",
@@ -39,6 +37,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 
 class ItineraryDaySerializer(serializers.ModelSerializer):
+
     activities = ActivitySerializer(
         many=True,
         read_only=True,
@@ -46,6 +45,7 @@ class ItineraryDaySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ItineraryDay
+
         fields = (
             "id",
             "day_number",
@@ -58,11 +58,11 @@ class ItineraryDaySerializer(serializers.ModelSerializer):
 
 class TripSerializer(serializers.ModelSerializer):
 
-    source_airport = AirportMiniSerializer(
+    source_airport = AirportSerializer(
         read_only=True,
     )
 
-    destination_airport = AirportMiniSerializer(
+    destination_airport = AirportSerializer(
         read_only=True,
     )
 
@@ -78,28 +78,15 @@ class TripSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
-    # ---------- Selected Flight ----------
-
-    selected_flight = serializers.PrimaryKeyRelatedField(
-        queryset=Flight.objects.all(),
-        required=False,
-        allow_null=True,
-    )
-
-    selected_flight_number = serializers.CharField(
-        source="selected_flight.flight_number",
+    selected_flight = FlightSerializer(
         read_only=True,
     )
 
-    selected_airline = serializers.CharField(
-        source="selected_flight.airline.name",
+    selected_hotel = HotelSerializer(
         read_only=True,
     )
 
-    # ---------- Itinerary ----------
-
-    days = ItineraryDaySerializer(
-        many=True,
+    travelers = serializers.IntegerField(
         read_only=True,
     )
 
@@ -108,6 +95,9 @@ class TripSerializer(serializers.ModelSerializer):
 
         fields = (
             "id",
+
+            "title",
+            "overview",
 
             "source_airport",
             "destination_airport",
@@ -118,6 +108,11 @@ class TripSerializer(serializers.ModelSerializer):
             "departure_date",
             "return_date",
 
+            "adults",
+            "children",
+            "infants",
+            "seniors",
+
             "travelers",
 
             "cabin_class",
@@ -127,8 +122,8 @@ class TripSerializer(serializers.ModelSerializer):
             "status",
 
             "selected_flight",
-            "selected_flight_number",
-            "selected_airline",
+
+            "selected_hotel",
 
             "notes",
 
@@ -140,20 +135,62 @@ class TripSerializer(serializers.ModelSerializer):
 
         read_only_fields = (
             "id",
+            "travelers",
             "created_at",
             "updated_at",
         )
 
+    days = ItineraryDaySerializer(
+        many=True,
+        read_only=True,
+    )
+
     def validate(self, attrs):
 
-        source = attrs.get("source_airport")
-        destination = attrs.get("destination_airport")
+        source = attrs.get(
+            "source_airport",
+            getattr(
+                self.instance,
+                "source_airport",
+                None,
+            ),
+        )
 
-        departure = attrs.get("departure_date")
-        return_date = attrs.get("return_date")
+        destination = attrs.get(
+            "destination_airport",
+            getattr(
+                self.instance,
+                "destination_airport",
+                None,
+            ),
+        )
 
-        travelers = attrs.get("travelers")
-        budget = attrs.get("budget")
+        departure = attrs.get(
+            "departure_date",
+            getattr(
+                self.instance,
+                "departure_date",
+                None,
+            ),
+        )
+
+        return_date = attrs.get(
+            "return_date",
+            getattr(
+                self.instance,
+                "return_date",
+                None,
+            ),
+        )
+
+        budget = attrs.get(
+            "budget",
+            getattr(
+                self.instance,
+                "budget",
+                None,
+            ),
+        )
 
         if source == destination:
             raise serializers.ValidationError(
@@ -172,22 +209,14 @@ class TripSerializer(serializers.ModelSerializer):
             )
 
         if (
-            return_date
-            and departure
+            departure
+            and return_date
             and return_date < departure
         ):
             raise serializers.ValidationError(
                 {
                     "return_date":
                     "Return date cannot be earlier than departure date."
-                }
-            )
-
-        if travelers is not None and travelers < 1:
-            raise serializers.ValidationError(
-                {
-                    "travelers":
-                    "At least one traveler is required."
                 }
             )
 
@@ -200,3 +229,47 @@ class TripSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+
+class SaveLayoverTripSerializer(serializers.Serializer):
+
+    planner = serializers.JSONField()
+
+    result = serializers.JSONField()
+
+from .models import LayoverTrip
+
+
+class LayoverTripSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LayoverTrip
+
+        fields = (
+            "id",
+            "user",
+
+            "departure_airport",
+            "layover_airport",
+            "destination_airport",
+
+            "arrival_date",
+            "arrival_time",
+
+            "departure_date",
+            "departure_time",
+
+            "budget",
+
+            "travel_style",
+
+            "ai_result",
+
+            "created_at",
+        )
+
+        read_only_fields = (
+            "id",
+            "user",
+            "created_at",
+        )

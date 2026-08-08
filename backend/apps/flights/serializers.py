@@ -10,12 +10,18 @@ class AirlineSerializer(serializers.ModelSerializer):
 
 
 class FlightSerializer(serializers.ModelSerializer):
+
     airline_name = serializers.CharField(
         source="airline.name",
         read_only=True,
     )
 
-    airline_logo = serializers.CharField(
+    airline_code = serializers.CharField(
+        source="airline.code",
+        read_only=True,
+    )
+
+    airline_logo = serializers.URLField(
         source="airline.logo",
         read_only=True,
     )
@@ -40,16 +46,35 @@ class FlightSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    cabin_class_display = serializers.CharField(
+        source="get_cabin_class_display",
+        read_only=True,
+    )
+
+    status_display = serializers.CharField(
+        source="get_status_display",
+        read_only=True,
+    )
+
+    departure_terminal = serializers.CharField(
+        source="terminal",
+        read_only=True,
+    )
+
+    arrival_terminal = serializers.SerializerMethodField()
+
     duration_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Flight
+
         fields = [
             "id",
             "trip",
 
             "airline",
             "airline_name",
+            "airline_code",
             "airline_logo",
 
             "flight_type",
@@ -67,23 +92,33 @@ class FlightSerializer(serializers.ModelSerializer):
             "departure_datetime",
             "arrival_datetime",
 
+            "departure_terminal",
+            "arrival_terminal",
+
             "duration_minutes",
             "duration_display",
 
             "cabin_class",
+            "cabin_class_display",
+
             "price",
 
             "stops",
+
             "baggage_allowance",
+
             "refundable",
 
             "aircraft",
+
             "terminal",
+
             "gate",
 
             "booking_reference",
 
             "status",
+            "status_display",
 
             "created_at",
             "updated_at",
@@ -98,7 +133,18 @@ class FlightSerializer(serializers.ModelSerializer):
     def get_duration_display(self, obj):
         hours = obj.duration_minutes // 60
         minutes = obj.duration_minutes % 60
-        return f"{hours}h {minutes}m"
+
+        if hours:
+            return f"{hours}h {minutes}m"
+
+        return f"{minutes}m"
+
+    def get_arrival_terminal(self, obj):
+        """
+        Reserved for future support.
+        Current model stores only one terminal.
+        """
+        return ""
 
     def validate(self, attrs):
         departure = attrs.get(

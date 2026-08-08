@@ -4,14 +4,11 @@ from apps.travel.models import Airport
 from apps.trips.models import Trip
 
 
+# =====================================================
+# AIRLINE
+# =====================================================
+
 class Airline(models.Model):
-    """
-    Airline master table.
-    Examples:
-    Emirates
-    IndiGo
-    Qatar Airways
-    """
 
     name = models.CharField(
         max_length=120,
@@ -21,6 +18,21 @@ class Airline(models.Model):
     code = models.CharField(
         max_length=5,
         unique=True,
+    )
+
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+    )
+
+    hub = models.CharField(
+        max_length=10,
+        blank=True,
+    )
+
+    airline_type = models.CharField(
+        max_length=30,
+        blank=True,
     )
 
     logo = models.URLField(
@@ -37,6 +49,53 @@ class Airline(models.Model):
     def __str__(self):
         return self.name
 
+# =====================================================
+# FLIGHT ROUTE
+# =====================================================
+
+class FlightRoute(models.Model):
+
+    source_airport = models.ForeignKey(
+        Airport,
+        on_delete=models.CASCADE,
+        related_name="departure_routes",
+    )
+
+    destination_airport = models.ForeignKey(
+        Airport,
+        on_delete=models.CASCADE,
+        related_name="arrival_routes",
+    )
+
+    distance_km = models.PositiveIntegerField()
+
+    is_domestic = models.BooleanField()
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        unique_together = (
+            "source_airport",
+            "destination_airport",
+        )
+
+    def __str__(self):
+        return (
+            f"{self.source_airport.iata_code}"
+            f" → "
+            f"{self.destination_airport.iata_code}"
+        )
+
+
+# =====================================================
+# FLIGHT
+# =====================================================
 
 class Flight(models.Model):
 
@@ -62,6 +121,8 @@ class Flight(models.Model):
         Trip,
         on_delete=models.CASCADE,
         related_name="flights",
+        null=True,
+        blank=True,
     )
 
     airline = models.ForeignKey(

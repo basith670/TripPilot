@@ -48,6 +48,13 @@ urlpatterns = [
     ),
 
     path("api/v1/flights/", include("apps.flights.urls")),
+
+
+
+    path(
+        "api/v1/hotels/",
+        include("apps.hotels.urls"),
+    ),
 ]
 
 if settings.DEBUG:
