@@ -10,6 +10,8 @@ import {
 } from "react-icons/fa";
 
 interface DashboardHeroProps {
+  userName: string;
+
   statistics: {
     total_trips: number;
     total_budget: number;
@@ -19,8 +21,35 @@ interface DashboardHeroProps {
 }
 
 export default function DashboardHero({
+  userName,
   statistics,
 }: DashboardHeroProps) {
+  /*
+   * Determine greeting based on the current local time.
+   *
+   * 5:00 AM - 11:59 AM  → Good Morning
+   * 12:00 PM - 4:59 PM  → Good Afternoon
+   * 5:00 PM - 8:59 PM   → Good Evening
+   * 9:00 PM - 4:59 AM   → Good Night
+   */
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+      return "Good Morning";
+    }
+
+    if (hour >= 12 && hour < 17) {
+      return "Good Afternoon";
+    }
+
+    if (hour >= 17 && hour < 21) {
+      return "Good Evening";
+    }
+
+    return "Good Night";
+  };
+
   return (
     <section
       className="
@@ -46,56 +75,117 @@ export default function DashboardHero({
         dark:to-slate-900
       "
     >
-      {/* Background Glow */}
+      {/* ==================================================
+          BACKGROUND GLOW
+      ================================================== */}
 
-      <div className="absolute -right-20 -top-24 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div
+        className="
+          absolute
+          -right-20
+          -top-24
+          h-80
+          w-80
+          rounded-full
+          bg-cyan-400/20
+          blur-3xl
+        "
+      />
 
-      <div className="absolute bottom-0 left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+      <div
+        className="
+          absolute
+          bottom-0
+          left-20
+          h-64
+          w-64
+          rounded-full
+          bg-blue-500/20
+          blur-3xl
+        "
+      />
 
-      <div className="relative z-10 flex flex-col gap-10 xl:flex-row xl:items-center xl:justify-between">
-        {/* Left */}
+      {/* ==================================================
+          CONTENT
+      ================================================== */}
+
+      <div
+        className="
+          relative
+          z-10
+          flex
+          flex-col
+          gap-10
+          xl:flex-row
+          xl:items-center
+          xl:justify-between
+        "
+      >
+        {/* ==================================================
+            LEFT CONTENT
+        ================================================== */}
 
         <div className="max-w-2xl">
           <span
             className="
               inline-flex
               items-center
-
               rounded-full
-
               border
               border-white/15
-
               bg-white/10
-
               px-4
               py-2
-
               text-sm
               font-semibold
-
               backdrop-blur
             "
           >
             ✈ AI Travel Dashboard
           </span>
 
-          <h1 className="mt-6 text-4xl font-bold leading-tight xl:text-6xl">
-            Good Afternoon,
+          <h1
+            className="
+              mt-6
+              text-4xl
+              font-bold
+              leading-tight
+              xl:text-6xl
+            "
+          >
+            {getGreeting()},
             <br />
-            Muhammad Basith 👋
+            {userName} 👋
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-8 text-blue-100 dark:text-slate-300">
-            Plan smarter, organize every journey effortlessly and
-            manage your travel experience from one intelligent
-            dashboard.
+          <p
+            className="
+              mt-6
+              max-w-xl
+              text-lg
+              leading-8
+              text-blue-100
+              dark:text-slate-300
+            "
+          >
+            Plan smarter, organize every journey effortlessly
+            and manage your travel experience from one
+            intelligent dashboard.
           </p>
         </div>
 
-        {/* Stats */}
+        {/* ==================================================
+            STATS
+        ================================================== */}
 
-        <div className="grid grid-cols-2 gap-5 xl:w-[430px]">
+        <div
+          className="
+            grid
+            grid-cols-2
+            gap-5
+            xl:w-[430px]
+          "
+        >
           <HeroStat
             icon={<FaPlane />}
             label="Trips"
@@ -128,6 +218,10 @@ export default function DashboardHero({
   );
 }
 
+/* ==========================================================
+   HERO STAT
+========================================================== */
+
 interface HeroStatProps {
   icon: ReactNode;
   label: string;
@@ -145,19 +239,13 @@ function HeroStat({
     <div
       className="
         rounded-3xl
-
         border
         border-white/15
-
         bg-white/10
-
         p-5
-
         backdrop-blur-xl
-
         transition-all
         duration-300
-
         hover:-translate-y-1
         hover:bg-white/15
       "
@@ -165,17 +253,13 @@ function HeroStat({
       <div
         className="
           mb-5
-
           flex
           h-12
           w-12
           items-center
           justify-center
-
           rounded-2xl
-
           bg-white/15
-
           text-lg
           text-white
         "
@@ -183,15 +267,34 @@ function HeroStat({
         {icon}
       </div>
 
-      <p className="text-sm font-medium text-blue-100 dark:text-slate-300">
+      <p
+        className="
+          text-sm
+          font-medium
+          text-blue-100
+          dark:text-slate-300
+        "
+      >
         {label}
       </p>
 
       <h3
         className={
           isBudget
-            ? "mt-2 break-words text-[28px] font-bold leading-tight xl:text-[32px]"
-            : "mt-2 text-4xl font-bold leading-none"
+            ? `
+              mt-2
+              break-words
+              text-[28px]
+              font-bold
+              leading-tight
+              xl:text-[32px]
+            `
+            : `
+              mt-2
+              text-4xl
+              font-bold
+              leading-none
+            `
         }
       >
         {value}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 import { getDashboard } from "@/services/dashboard.service";
 
@@ -13,6 +14,8 @@ import RecentTripCard from "@/components/dashboard/RecentTripCard";
 
 import StatusChart from "@/components/dashboard/StatusChart";
 import MonthlyTripsChart from "@/components/dashboard/MonthlyTripsChart";
+
+import type { RootState } from "@/store";
 
 interface DashboardData {
   statistics: {
@@ -49,19 +52,64 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
+  /* ========================================================
+     DASHBOARD STATE
+  ======================================================== */
+
   const [dashboard, setDashboard] =
     useState<DashboardData | null>(null);
 
   const [loading, setLoading] =
     useState(true);
 
+  /* ========================================================
+     CURRENT AUTHENTICATED USER
+  ======================================================== */
+
+  const user = useSelector(
+    (state: RootState) => state.auth.user
+  );
+
+  /*
+   * Create the name shown in the dashboard hero.
+   *
+   * Priority:
+   *
+   * 1. first_name + last_name
+   * 2. first_name
+   * 3. username
+   * 4. email
+   * 5. Traveler
+   */
+
+  const userName =
+    user?.first_name?.trim()
+      ? `${user.first_name.trim()}${
+          user.last_name?.trim()
+            ? ` ${user.last_name.trim()}`
+            : ""
+        }`
+      : user?.username?.trim()
+        ? user.username.trim()
+        : user?.email?.trim()
+          ? user.email.trim()
+          : "Traveler";
+
+  /* ========================================================
+     FETCH DASHBOARD DATA
+  ======================================================== */
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const data = await getDashboard();
+
         setDashboard(data);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Failed to load dashboard:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -70,9 +118,22 @@ export default function DashboardPage() {
     fetchDashboard();
   }, []);
 
+  /* ========================================================
+     LOADING STATE
+  ======================================================== */
+
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background transition-colors">
+      <main
+        className="
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          bg-background
+          transition-colors
+        "
+      >
         <div
           className="
             rounded-3xl
@@ -84,11 +145,22 @@ export default function DashboardPage() {
             shadow-xl
           "
         >
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1
+            className="
+              text-xl
+              font-semibold
+              text-foreground
+            "
+          >
             Loading Dashboard...
           </h1>
 
-          <p className="mt-2 text-muted-foreground">
+          <p
+            className="
+              mt-2
+              text-muted-foreground
+            "
+          >
             Please wait while we prepare your dashboard.
           </p>
         </div>
@@ -96,11 +168,18 @@ export default function DashboardPage() {
     );
   }
 
+  /* ========================================================
+     DASHBOARD
+  ======================================================== */
+
   return (
     <DashboardLayout>
-      {/* Hero */}
+      {/* ==================================================
+          HERO
+      ================================================== */}
 
       <DashboardHero
+        userName={userName}
         statistics={{
           total_trips:
             dashboard?.statistics.total_trips ?? 0,
@@ -116,7 +195,9 @@ export default function DashboardPage() {
         }}
       />
 
-      {/* Status */}
+      {/* ==================================================
+          TRIP STATUS
+      ================================================== */}
 
       <section className="mt-12">
         <div className="mb-6">
@@ -129,7 +210,6 @@ export default function DashboardPage() {
               text-sm
               font-semibold
               text-blue-700
-
               dark:bg-blue-500/15
               dark:text-blue-300
             "
@@ -137,7 +217,14 @@ export default function DashboardPage() {
             Dashboard Overview
           </span>
 
-          <h2 className="mt-4 text-3xl font-bold text-foreground">
+          <h2
+            className="
+              mt-4
+              text-3xl
+              font-bold
+              text-foreground
+            "
+          >
             Trip Status
           </h2>
 
@@ -146,13 +233,24 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div
+          className="
+            grid
+            gap-6
+            sm:grid-cols-2
+            xl:grid-cols-4
+          "
+        >
           <TripStatusCard
             title="Planning"
             value={
               dashboard?.statistics.planning_trips ?? 0
             }
-            gradient="bg-gradient-to-r from-amber-500 to-orange-500"
+            gradient="
+              bg-gradient-to-r
+              from-amber-500
+              to-orange-500
+            "
           />
 
           <TripStatusCard
@@ -160,7 +258,11 @@ export default function DashboardPage() {
             value={
               dashboard?.statistics.confirmed_trips ?? 0
             }
-            gradient="bg-gradient-to-r from-emerald-500 to-green-600"
+            gradient="
+              bg-gradient-to-r
+              from-emerald-500
+              to-green-600
+            "
           />
 
           <TripStatusCard
@@ -168,7 +270,11 @@ export default function DashboardPage() {
             value={
               dashboard?.statistics.completed_trips ?? 0
             }
-            gradient="bg-gradient-to-r from-sky-500 to-blue-600"
+            gradient="
+              bg-gradient-to-r
+              from-sky-500
+              to-blue-600
+            "
           />
 
           <TripStatusCard
@@ -176,12 +282,18 @@ export default function DashboardPage() {
             value={
               dashboard?.statistics.cancelled_trips ?? 0
             }
-            gradient="bg-gradient-to-r from-rose-500 to-red-600"
+            gradient="
+              bg-gradient-to-r
+              from-rose-500
+              to-red-600
+            "
           />
         </div>
       </section>
 
-      {/* Next Trip */}
+      {/* ==================================================
+          NEXT TRIP
+      ================================================== */}
 
       <section className="mt-12">
         <NextTripCard
@@ -189,7 +301,9 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* Recent Trips */}
+      {/* ==================================================
+          RECENT TRIPS
+      ================================================== */}
 
       <section className="mt-14">
         <div className="mb-8">
@@ -202,7 +316,6 @@ export default function DashboardPage() {
               text-sm
               font-semibold
               text-cyan-700
-
               dark:bg-cyan-500/15
               dark:text-cyan-300
             "
@@ -210,7 +323,14 @@ export default function DashboardPage() {
             Latest Activity
           </span>
 
-          <h2 className="mt-4 text-3xl font-bold text-foreground">
+          <h2
+            className="
+              mt-4
+              text-3xl
+              font-bold
+              text-foreground
+            "
+          >
             Recent Trips
           </h2>
 
@@ -220,13 +340,22 @@ export default function DashboardPage() {
         </div>
 
         {dashboard?.recent_trips.length ? (
-          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            {dashboard.recent_trips.map((trip) => (
-              <RecentTripCard
-                key={trip.id}
-                trip={trip}
-              />
-            ))}
+          <div
+            className="
+              grid
+              gap-6
+              lg:grid-cols-2
+              xl:grid-cols-3
+            "
+          >
+            {dashboard.recent_trips.map(
+              (trip) => (
+                <RecentTripCard
+                  key={trip.id}
+                  trip={trip}
+                />
+              )
+            )}
           </div>
         ) : (
           <div
@@ -240,18 +369,27 @@ export default function DashboardPage() {
               shadow-xl
             "
           >
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3
+              className="
+                text-2xl
+                font-bold
+                text-foreground
+              "
+            >
               No Trips Yet
             </h3>
 
             <p className="mt-3 text-muted-foreground">
-              Create your first AI trip and it will appear here.
+              Create your first AI trip and it will
+              appear here.
             </p>
           </div>
         )}
       </section>
 
-      {/* Analytics */}
+      {/* ==================================================
+          ANALYTICS
+      ================================================== */}
 
       <section className="mt-16">
         <div className="mb-8">
@@ -264,7 +402,6 @@ export default function DashboardPage() {
               text-sm
               font-semibold
               text-indigo-700
-
               dark:bg-indigo-500/15
               dark:text-indigo-300
             "
@@ -272,16 +409,30 @@ export default function DashboardPage() {
             Insights
           </span>
 
-          <h2 className="mt-4 text-3xl font-bold text-foreground">
+          <h2
+            className="
+              mt-4
+              text-3xl
+              font-bold
+              text-foreground
+            "
+          >
             Travel Analytics
           </h2>
 
           <p className="mt-2 text-muted-foreground">
-            Understand your travel history with AI-powered insights.
+            Understand your travel history with
+            AI-powered insights.
           </p>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-2">
+        <div
+          className="
+            grid
+            gap-8
+            xl:grid-cols-2
+          "
+        >
           <StatusChart
             planning={
               dashboard?.statistics.planning_trips ?? 0
@@ -298,7 +449,9 @@ export default function DashboardPage() {
           />
 
           <MonthlyTripsChart
-            data={dashboard?.monthly_trips ?? []}
+            data={
+              dashboard?.monthly_trips ?? []
+            }
           />
         </div>
       </section>
