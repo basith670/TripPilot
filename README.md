@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.png" width="100%" alt="TripPilot Banner">
+  <img src="docs/screenshots/banner.png" width="100%" alt="TripPilot Banner">
 </p>
 
 <h1 align="center">✈️ TripPilot</h1>
