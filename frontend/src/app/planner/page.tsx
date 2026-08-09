@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -13,7 +13,7 @@ import PlannerSelector from "@/components/ai/PlannerSelector";
 import TripPlannerForm from "@/components/ai/TripPlanner/TripPlannerForm";
 import LayoverPlannerForm from "@/components/ai/LayoverPlanner/LayoverPlannerForm";
 
-export default function PlannerPage() {
+function PlannerContent() {
   const searchParams = useSearchParams();
 
   const editId = searchParams.get("edit");
@@ -93,35 +93,24 @@ export default function PlannerPage() {
                   onClick={() => setPlannerType(null)}
                   className="
                     mb-6
-
                     inline-flex
                     items-center
                     justify-center
-
                     rounded-2xl
-
                     border
                     border-border
-
                     bg-card
-
                     px-5
                     py-3
-
                     text-sm
                     font-medium
-
                     text-foreground
-
                     shadow-lg
-
                     transition-all
                     duration-300
-
                     hover:-translate-y-1
                     hover:bg-accent
                     hover:shadow-xl
-
                     sm:px-6
                     sm:text-base
                   "
@@ -130,7 +119,6 @@ export default function PlannerPage() {
                 </button>
 
                 <TripPlannerForm />
-
               </motion.div>
             )}
 
@@ -162,35 +150,24 @@ export default function PlannerPage() {
                     onClick={() => setPlannerType(null)}
                     className="
                       mb-6
-
                       inline-flex
                       items-center
                       justify-center
-
                       rounded-2xl
-
                       border
                       border-border
-
                       bg-card
-
                       px-5
                       py-3
-
                       text-sm
                       font-medium
-
                       text-foreground
-
                       shadow-lg
-
                       transition-all
                       duration-300
-
                       hover:-translate-y-1
                       hover:bg-accent
                       hover:shadow-xl
-
                       sm:px-6
                       sm:text-base
                     "
@@ -200,15 +177,21 @@ export default function PlannerPage() {
                 )}
 
                 <LayoverPlannerForm editId={editId} />
-
               </motion.div>
             )}
 
           </AnimatePresence>
 
         </div>
-
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function PlannerPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlannerContent />
+    </Suspense>
   );
 }
