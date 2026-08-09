@@ -81,7 +81,17 @@ export default function LayoverTripCard({
       >
         {/* Header */}
 
-        <div className="flex items-start justify-between gap-5">
+        <div
+            className="
+                flex
+                flex-col
+                gap-5
+
+                sm:flex-row
+                sm:items-start
+                sm:justify-between
+            "
+            >
 
           <div className="flex items-start gap-4">
 
@@ -127,7 +137,15 @@ export default function LayoverTripCard({
 
           </div>
 
-          <div className="flex items-center gap-2">
+          <div
+            className="
+                flex
+                items-center
+                gap-2
+                self-end
+                shrink-0
+            "
+            >
 
             <span
               className="

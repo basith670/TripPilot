@@ -82,37 +82,45 @@ export default function BasicInfoStep({
 
         {/* Departure */}
 
-        <AirportAutocomplete
-          label="Departure Airport"
-          icon={PlaneTakeoff}
-          value={formData.sourceAirport}
-          placeholder="Search departure airport..."
-          onSelect={(airport: Airport) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              sourceAirport: airport.iata_code,
-            }))
-          }
-        />
+        <div className="min-w-0">
+
+          <AirportAutocomplete
+            label="Departure Airport"
+            icon={PlaneTakeoff}
+            value={formData.sourceAirport}
+            placeholder="Search departure airport..."
+            onSelect={(airport: Airport) =>
+              setFormData((prev: any) => ({
+                ...prev,
+                sourceAirport: airport.iata_code,
+              }))
+            }
+          />
+
+        </div>
 
         {/* Destination */}
 
-        <AirportAutocomplete
-          label="Destination Airport"
-          icon={PlaneLanding}
-          value={formData.destinationAirport}
-          placeholder="Search destination airport..."
-          onSelect={(airport: Airport) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              destinationAirport: airport.iata_code,
-            }))
-          }
-        />
+        <div className="min-w-0">
+
+          <AirportAutocomplete
+            label="Destination Airport"
+            icon={PlaneLanding}
+            value={formData.destinationAirport}
+            placeholder="Search destination airport..."
+            onSelect={(airport: Airport) =>
+              setFormData((prev: any) => ({
+                ...prev,
+                destinationAirport: airport.iata_code,
+              }))
+            }
+          />
+
+        </div>
 
         {/* Departure Date */}
 
-        <div>
+        <div className="min-w-0">
 
           <label className="mb-2 block text-sm font-semibold text-foreground">
             Departure Date
@@ -122,7 +130,7 @@ export default function BasicInfoStep({
 
             <CalendarDays
               size={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400"
             />
 
             <input
@@ -133,6 +141,9 @@ export default function BasicInfoStep({
               className="
                 h-14
                 w-full
+                min-w-0
+
+                box-border
 
                 rounded-2xl
 
@@ -162,7 +173,7 @@ export default function BasicInfoStep({
 
         {/* Return Date */}
 
-        <div>
+        <div className="min-w-0">
 
           <label className="mb-2 block text-sm font-semibold text-foreground">
             Return Date
@@ -172,7 +183,7 @@ export default function BasicInfoStep({
 
             <CalendarDays
               size={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-600 dark:text-indigo-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo-600 dark:text-indigo-400"
             />
 
             <input
@@ -183,6 +194,9 @@ export default function BasicInfoStep({
               className="
                 h-14
                 w-full
+                min-w-0
+
+                box-border
 
                 rounded-2xl
 
@@ -212,7 +226,7 @@ export default function BasicInfoStep({
 
         {/* Budget */}
 
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
 
           <label className="mb-2 block text-sm font-semibold text-foreground">
             Total Budget
@@ -222,10 +236,10 @@ export default function BasicInfoStep({
 
             <Wallet
               size={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400"
             />
 
-            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
               INR
             </span>
 
@@ -237,6 +251,9 @@ export default function BasicInfoStep({
               className="
                 h-14
                 w-full
+                min-w-0
+
+                box-border
 
                 rounded-2xl
 

@@ -90,35 +90,39 @@ export default function FlightStep({
         </h4>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <AirportAutocomplete
-            label="Departure Airport"
-            icon={PlaneTakeoff}
-            value={formData.departureAirport}
-            placeholder="Search departure airport..."
-            onSelect={(airport: Airport) =>
-              setFormData((prev: any) => ({
-                ...prev,
-                departureAirport:
-                  airport.iata_code,
-              }))
-            }
-          />
+          <div className="min-w-0">
+            <AirportAutocomplete
+              label="Departure Airport"
+              icon={PlaneTakeoff}
+              value={formData.departureAirport}
+              placeholder="Search departure airport..."
+              onSelect={(airport: Airport) =>
+                setFormData((prev: any) => ({
+                  ...prev,
+                  departureAirport:
+                    airport.iata_code,
+                }))
+              }
+            />
+          </div>
 
-          <AirportAutocomplete
-            label="Layover Airport"
-            icon={PlaneLanding}
-            value={formData.layoverAirport}
-            placeholder="Search layover airport..."
-            onSelect={(airport: Airport) =>
-              setFormData((prev: any) => ({
-                ...prev,
-                layoverAirport:
-                  airport.iata_code,
-              }))
-            }
-          />
+          <div className="min-w-0">
+            <AirportAutocomplete
+              label="Layover Airport"
+              icon={PlaneLanding}
+              value={formData.layoverAirport}
+              placeholder="Search layover airport..."
+              onSelect={(airport: Airport) =>
+                setFormData((prev: any) => ({
+                  ...prev,
+                  layoverAirport:
+                    airport.iata_code,
+                }))
+              }
+            />
+          </div>
 
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             <AirportAutocomplete
               label="Destination Airport"
               icon={PlaneLanding}
@@ -155,7 +159,7 @@ export default function FlightStep({
         </h4>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <label className="mb-2 block text-sm font-semibold text-foreground">
               Arrival Date
             </label>
@@ -163,7 +167,7 @@ export default function FlightStep({
             <div className="relative">
               <CalendarDays
                 size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400"
               />
 
               <input
@@ -174,6 +178,8 @@ export default function FlightStep({
                 className="
                   h-14
                   w-full
+                  min-w-0
+                  box-border
                   rounded-2xl
                   border
                   border-border
@@ -191,7 +197,7 @@ export default function FlightStep({
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="mb-2 block text-sm font-semibold text-foreground">
               Arrival Time
             </label>
@@ -199,7 +205,7 @@ export default function FlightStep({
             <div className="relative">
               <Clock3
                 size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400"
               />
 
               <input
@@ -210,6 +216,8 @@ export default function FlightStep({
                 className="
                   h-14
                   w-full
+                  min-w-0
+                  box-border
                   rounded-2xl
                   border
                   border-border
@@ -248,7 +256,7 @@ export default function FlightStep({
         </h4>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <label className="mb-2 block text-sm font-semibold text-foreground">
               Departure Date
             </label>
@@ -256,7 +264,7 @@ export default function FlightStep({
             <div className="relative">
               <CalendarDays
                 size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 dark:text-green-400"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-green-600 dark:text-green-400"
               />
 
               <input
@@ -267,6 +275,8 @@ export default function FlightStep({
                 className="
                   h-14
                   w-full
+                  min-w-0
+                  box-border
                   rounded-2xl
                   border
                   border-border
@@ -284,7 +294,7 @@ export default function FlightStep({
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="mb-2 block text-sm font-semibold text-foreground">
               Departure Time
             </label>
@@ -292,7 +302,7 @@ export default function FlightStep({
             <div className="relative">
               <Clock3
                 size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-green-600 dark:text-green-400"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-green-600 dark:text-green-400"
               />
 
               <input
@@ -303,6 +313,8 @@ export default function FlightStep({
                 className="
                   h-14
                   w-full
+                  min-w-0
+                  box-border
                   rounded-2xl
                   border
                   border-border
