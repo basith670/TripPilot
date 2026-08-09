@@ -127,14 +127,6 @@ TEMPLATES = [
 # ==========================================================
 # DATABASE
 # ==========================================================
-#
-# Neon PostgreSQL
-#
-# DATABASE_URL is stored in .env locally
-# and will be added as a Railway environment variable
-# during production deployment.
-#
-# ==========================================================
 
 DATABASES = {
     "default": dj_database_url.parse(
@@ -277,7 +269,6 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = "accounts.User"
 
 
-
 # ==========================================================
 # DRF SPECTACULAR
 # ==========================================================
@@ -328,7 +319,21 @@ FRONTEND_URL = config(
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://trip-pilot-luvfb6i6n-m-basith.vercel.app",
     FRONTEND_URL,
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+
+# ==========================================================
+# CSRF
+# ==========================================================
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://trip-pilot-luvfb6i6n-m-basith.vercel.app",
+    FRONTEND_URL,
+]
