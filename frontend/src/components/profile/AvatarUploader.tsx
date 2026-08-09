@@ -9,6 +9,7 @@ import { Camera } from "lucide-react";
 
 import { UserProfile } from "@/types/profile";
 
+
 interface AvatarUploaderProps {
   profile: UserProfile;
 
@@ -17,30 +18,85 @@ interface AvatarUploaderProps {
   >;
 }
 
+
 export default function AvatarUploader({
   profile,
   setProfile,
 }: AvatarUploaderProps) {
+
   const handleImageChange = (
     file: File
   ) => {
+
+    // ==================================================
+    // FILE TYPE VALIDATION
+    // ==================================================
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+      alert(
+        "Please select a JPG, PNG, or WEBP image."
+      );
+
+      return;
+    }
+
+
+    // ==================================================
+    // FILE SIZE VALIDATION
+    // ==================================================
+
+    const maxSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      alert(
+        "Profile picture must be smaller than 5 MB."
+      );
+
+      return;
+    }
+
+
+    // ==================================================
+    // CREATE LOCAL PREVIEW
+    // ==================================================
+
     const preview =
       URL.createObjectURL(file);
+
+
+    // ==================================================
+    // UPDATE PROFILE STATE
+    // ==================================================
 
     setProfile((prev) =>
       prev
         ? {
             ...prev,
 
-            // Preview Image
-            profile_picture: preview,
+            // Temporary browser preview
+            profile_picture:
+              preview,
 
-            // Actual File
-            profilePictureFile: file,
+            // Actual file that will be
+            // uploaded to Django/Cloudinary
+            profilePictureFile:
+              file,
           }
         : prev
     );
   };
+
 
   return (
     <section
@@ -57,16 +113,27 @@ export default function AvatarUploader({
         shadow-xl
       "
     >
-      <div className="flex flex-col items-center">
 
-        {/* Avatar */}
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+        "
+      >
+
+        {/* ==================================================
+            AVATAR
+        ================================================== */}
 
         <div className="relative">
 
           {profile.profile_picture ? (
 
             <img
-              src={profile.profile_picture}
+              src={
+                profile.profile_picture
+              }
               alt="Profile"
               className="
                 h-40
@@ -110,13 +177,17 @@ export default function AvatarUploader({
               "
             >
               {profile.first_name
-                ? profile.first_name[0].toUpperCase()
+                ? profile.first_name[0]
+                    .toUpperCase()
                 : "?"}
             </div>
 
           )}
 
-          {/* Upload */}
+
+          {/* ==================================================
+              UPLOAD BUTTON
+          ================================================== */}
 
           <label
             className="
@@ -153,19 +224,25 @@ export default function AvatarUploader({
               hover:shadow-xl
             "
           >
+
             <Camera size={18} />
 
             <input
               hidden
               type="file"
-              accept="image/*"
-              onChange={(e) => {
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => {
+
                 const file =
-                  e.target.files?.[0];
+                  event.target.files?.[0];
 
                 if (file) {
                   handleImageChange(file);
                 }
+
+                // Allow selecting the same
+                // image again later.
+                event.target.value = "";
               }}
             />
 
@@ -173,7 +250,10 @@ export default function AvatarUploader({
 
         </div>
 
-        {/* Details */}
+
+        {/* ==================================================
+            USER NAME
+        ================================================== */}
 
         <h2
           className="
@@ -189,6 +269,11 @@ export default function AvatarUploader({
           {profile.last_name}
         </h2>
 
+
+        {/* ==================================================
+            USERNAME
+        ================================================== */}
+
         <p
           className="
             mt-2
@@ -200,6 +285,11 @@ export default function AvatarUploader({
         >
           @{profile.username}
         </p>
+
+
+        {/* ==================================================
+            FILE INFORMATION
+        ================================================== */}
 
         <div
           className="
@@ -224,6 +314,7 @@ export default function AvatarUploader({
         </div>
 
       </div>
+
     </section>
   );
 }

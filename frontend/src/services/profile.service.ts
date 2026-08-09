@@ -14,48 +14,42 @@ export const getProfile = async (): Promise<UserProfile> => {
 };
 
 export const updateProfile = async (
-  data: UpdateProfileData
-): Promise<UserProfile> => {
-  const formData = new FormData();
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (
-      value === undefined ||
-      value === null
-    ) {
-      return;
-    }
-
-    if (key === "profilePictureFile") {
-      formData.append(
-        "profile_picture",
-        value as File
-      );
-
-      return;
-    }
-
-    if (key === "profile_picture") {
-      return;
-    }
-
-    formData.append(
-      key,
-      String(value)
-    );
-  });
-
-  const response =
-    await api.patch<UserProfile>(
-      "/accounts/profile/",
-      formData,
-      {
-        headers: {
-          "Content-Type":
-            "multipart/form-data",
-        },
+    data: UpdateProfileData
+  ): Promise<UserProfile> => {
+    const formData = new FormData();
+  
+    Object.entries(data).forEach(([key, value]) => {
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return;
       }
-    );
-
-  return response.data;
-};
+  
+      if (key === "profilePictureFile") {
+        formData.append(
+          "profile_picture",
+          value as File
+        );
+  
+        return;
+      }
+  
+      if (key === "profile_picture") {
+        return;
+      }
+  
+      formData.append(
+        key,
+        String(value)
+      );
+    });
+  
+    const response =
+      await api.patch<UserProfile>(
+        "/accounts/profile/",
+        formData
+      );
+  
+    return response.data;
+  };

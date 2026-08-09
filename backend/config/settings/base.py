@@ -15,6 +15,9 @@ from datetime import timedelta
 
 from decouple import config
 import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 
 # ==========================================================
@@ -40,6 +43,17 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="127.0.0.1,localhost",
 ).split(",")
+
+# ==========================================================
+# CLOUDINARY
+# ==========================================================
+
+cloudinary.config(
+    cloud_name=config("CLOUDINARY_CLOUD_NAME"),
+    api_key=config("CLOUDINARY_API_KEY"),
+    api_secret=config("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
 
 
 # ==========================================================
@@ -192,7 +206,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

@@ -64,6 +64,13 @@ export default function ProfilePage() {
 
       setProfile(updated);
 
+      // Tell any other mounted component (e.g. Navbar) that the
+      // profile changed, so they can refetch and stay in sync
+      // without requiring a full page reload.
+      window.dispatchEvent(
+        new Event("profile-updated")
+      );
+
       toast.success(
         "Profile updated successfully."
       );

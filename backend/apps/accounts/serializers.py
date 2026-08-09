@@ -78,7 +78,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             ),
             password=validated_data["password"],
         )
-    
+
 class LoginSerializer(serializers.Serializer):
 
     email = serializers.EmailField()
@@ -183,6 +183,16 @@ class ChangePasswordSerializer(
 class UserProfileSerializer(
     serializers.ModelSerializer
 ):
+    """
+    NOTE on profile_picture:
+    This is a read-only SerializerMethodField on purpose.
+    SerializerMethodField has no setter, so it can NEVER accept
+    an incoming upload through .save()/.update() no matter what
+    we put in read_only_fields. The actual Cloudinary upload +
+    save is handled explicitly in UserProfileDetailView.update()
+    in views.py, BEFORE this serializer runs. This serializer
+    only ever *reads back* the resulting URL.
+    """
 
     username = serializers.CharField(
         source="user.username",
@@ -200,6 +210,8 @@ class UserProfileSerializer(
     email = serializers.EmailField(
         source="user.email"
     )
+
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -228,10 +240,18 @@ class UserProfileSerializer(
 
         read_only_fields = [
             "username",
+            "profile_picture",
             "is_verified",
             "created_at",
             "updated_at",
         ]
+
+    def get_profile_picture(self, obj):
+
+        if not obj.profile_picture:
+            return None
+
+        return obj.profile_picture.url
 
     def update(
         self,
@@ -257,6 +277,7 @@ class UserProfileSerializer(
         )
 
         if "email" in user_data:
+
             new_email = (
                 user_data["email"]
                 .strip()

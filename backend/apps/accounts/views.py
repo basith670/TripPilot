@@ -8,6 +8,8 @@ from django.utils.http import (
     urlsafe_base64_encode,
 )
 
+import cloudinary.uploader
+
 from rest_framework import status
 from rest_framework.generics import (
     CreateAPIView,
@@ -319,7 +321,7 @@ class ResetPasswordView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-    
+
 # =====================================================
 # USER PROFILE
 # =====================================================
@@ -344,3 +346,90 @@ class UserProfileDetailView(
         )
 
         return profile
+
+    def update(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        partial = kwargs.pop(
+            "partial",
+            False,
+        )
+
+        profile = self.get_object()
+
+        # -------------------------------------------------
+        # PROFILE PICTURE
+        # -------------------------------------------------
+        # Handled manually here because profile_picture is a
+        # read-only SerializerMethodField on UserProfileSerializer
+        # (SerializerMethodField has no setter, so the serializer
+        # itself can never accept an uploaded file).
+
+        profile_picture = request.FILES.get(
+            "profile_picture"
+        )
+
+        if profile_picture:
+
+            upload_result = cloudinary.uploader.upload(
+                profile_picture,
+                folder="trippilot/profiles",
+                resource_type="image",
+            )
+
+            # Store the public_id (not secure_url). CloudinaryField
+            # builds .url from the public_id itself - assigning a
+            # full URL string into it can produce a broken URL later.
+            profile.profile_picture = (
+                upload_result["public_id"]
+            )
+
+            profile.save(
+                update_fields=[
+                    "profile_picture",
+                    "updated_at",
+                ]
+            )
+
+            # Re-fetch from DB so profile_picture is hydrated back
+            # into a CloudinaryResource (with .url) instead of the
+            # raw public_id string we just assigned in memory.
+            profile.refresh_from_db()
+
+        # -------------------------------------------------
+        # EVERYTHING ELSE (first_name, last_name, email, bio, etc.)
+        # -------------------------------------------------
+
+        serializer = self.get_serializer(
+            profile,
+            data=request.data,
+            partial=partial,
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        serializer.save()
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+    def partial_update(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        kwargs["partial"] = True
+
+        return self.update(
+            request,
+            *args,
+            **kwargs,
+        )

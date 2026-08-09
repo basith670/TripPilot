@@ -23,9 +23,10 @@ export default function ProfileForm({
   onCancel,
   loading,
 }: ProfileFormProps) {
-  const updateField = (
-    field: keyof UserProfile,
-    value: any
+
+  const updateField = <K extends keyof UserProfile>(
+    field: K,
+    value: UserProfile[K]
   ) => {
     setProfile((prev) =>
       prev

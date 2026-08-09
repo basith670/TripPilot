@@ -15,7 +15,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "TripPilot",
+  title: "TripPilot - AI Travel Planning Platform",
   description: "AI Travel Planning Platform",
 };
 

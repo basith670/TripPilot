@@ -7,9 +7,6 @@ import { tokenStorage } from "./token";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 /* ==========================================
@@ -34,6 +31,10 @@ api.interceptors.request.use(
         config.url?.includes(route)
       );
 
+    /* ==========================================
+       AUTHORIZATION
+    ========================================== */
+
     if (!isPublic) {
 
       const token =
@@ -43,7 +44,31 @@ api.interceptors.request.use(
         config.headers.Authorization =
           `Bearer ${token}`;
       }
+    }
 
+    /* ==========================================
+       CONTENT TYPE
+    ========================================== */
+
+    /*
+      Let Axios/browser automatically set the
+      Content-Type for FormData requests.
+
+      This is important because the browser needs
+      to add the multipart boundary.
+
+      For normal JSON requests, explicitly use
+      application/json.
+    */
+
+    if (config.data instanceof FormData) {
+
+      delete config.headers["Content-Type"];
+
+    } else {
+
+      config.headers["Content-Type"] =
+        "application/json";
     }
 
     return config;
@@ -65,6 +90,10 @@ api.interceptors.response.use(
         _retry?: boolean;
       };
 
+    /* ==========================================
+       ACCESS TOKEN EXPIRED
+    ========================================== */
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry
@@ -75,6 +104,10 @@ api.interceptors.response.use(
       const refresh =
         tokenStorage.getRefreshToken();
 
+      /* ==========================================
+         NO REFRESH TOKEN
+      ========================================== */
+
       if (!refresh) {
 
         tokenStorage.clearTokens();
@@ -82,10 +115,13 @@ api.interceptors.response.use(
         window.location.href = "/";
 
         return Promise.reject(error);
-
       }
 
       try {
+
+        /* ==========================================
+           REFRESH ACCESS TOKEN
+        ========================================== */
 
         const response =
           await axios.post(
@@ -94,6 +130,13 @@ api.interceptors.response.use(
 
             {
               refresh,
+            },
+
+            {
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
             }
 
           );
@@ -106,8 +149,33 @@ api.interceptors.response.use(
           refresh
         );
 
+        /* ==========================================
+           RETRY ORIGINAL REQUEST
+        ========================================== */
+
         originalRequest.headers.Authorization =
           `Bearer ${newAccess}`;
+
+        /*
+          If the original request was FormData,
+          keep it as FormData and don't force
+          application/json.
+        */
+
+        if (
+          originalRequest.data instanceof FormData
+        ) {
+
+          delete originalRequest.headers[
+            "Content-Type"
+          ];
+
+        } else {
+
+          originalRequest.headers[
+            "Content-Type"
+          ] = "application/json";
+        }
 
         return api(originalRequest);
 
@@ -117,14 +185,12 @@ api.interceptors.response.use(
 
         window.location.href = "/";
 
+        return Promise.reject(error);
       }
-
     }
 
     return Promise.reject(error);
-
   }
-
 );
 
 export default api;

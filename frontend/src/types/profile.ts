@@ -9,6 +9,8 @@ export interface UserProfile {
   
     profile_picture: string | null;
   
+    profilePictureFile?: File;
+  
     phone_number: string;
   
     date_of_birth: string | null;

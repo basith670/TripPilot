@@ -40,9 +40,9 @@ export default function Navbar({
     theme,
     setTheme,
   } = useTheme();
-  
+
   const isDark = resolvedTheme === "dark";
-  
+
   console.log({
     theme,
     resolvedTheme,
@@ -61,6 +61,28 @@ export default function Navbar({
     getProfile()
       .then(setProfile)
       .catch(console.error);
+  }, []);
+
+  // Refetch the profile whenever it's updated elsewhere in the app
+  // (e.g. after saving changes on the /profile page), so the avatar
+  // and name in the navbar update immediately without a full reload.
+  useEffect(() => {
+    const handleProfileUpdated = () => {
+      getProfile()
+        .then(setProfile)
+        .catch(console.error);
+    };
+
+    window.addEventListener(
+      "profile-updated",
+      handleProfileUpdated
+    );
+
+    return () =>
+      window.removeEventListener(
+        "profile-updated",
+        handleProfileUpdated
+      );
   }, []);
 
   useEffect(() => {
