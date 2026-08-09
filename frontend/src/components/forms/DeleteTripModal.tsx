@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  TriangleAlert,
+  Trash2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { deleteTrip } from "@/services/trips.service";
+import { Trip } from "@/types/trip";
 
 interface DeleteTripModalProps {
   isOpen: boolean;
-  trip: any;
+  trip: Trip | null;
   onClose: () => void;
   onSuccess: () => Promise<void>;
 }
@@ -17,9 +25,15 @@ export default function DeleteTripModal({
   onClose,
   onSuccess,
 }: DeleteTripModalProps) {
+  const [mounted, setMounted] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen || !trip) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isOpen || !trip) return null;
 
   const handleDelete = async () => {
     try {
@@ -29,50 +43,236 @@ export default function DeleteTripModal({
 
       await onSuccess();
 
+      toast.success("Trip deleted", {
+        description:
+          "The trip has been removed successfully.",
+      });
+
       onClose();
     } catch (error) {
-      console.error("Failed to delete trip:", error);
-      alert("Failed to delete trip.");
+      console.error(error);
+
+      toast.error("Delete failed", {
+        description:
+          "Unable to delete this trip.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="border-b p-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Delete Trip
-          </h2>
-        </div>
+  return createPortal(
+    <div
+      className="
+        fixed
+        inset-0
+        z-[9999]
 
-        <div className="space-y-3 p-6">
-          <p className="text-gray-600">
-            Are you sure you want to delete this trip?
-          </p>
+        flex
+        items-center
+        justify-center
 
-          <div className="rounded-lg bg-gray-100 p-4">
-            <p className="font-semibold">
-              {trip.source_airport.iata_code} →{" "}
-              {trip.destination_airport.iata_code}
-            </p>
+        bg-black/60
 
-            <p className="text-sm text-gray-500">
-              {trip.departure_date}
-            </p>
+        p-4
+
+        backdrop-blur-md
+      "
+    >
+      <div
+        className="
+          w-full
+          max-w-lg
+
+          overflow-hidden
+
+          rounded-[32px]
+
+          border
+          border-border
+
+          bg-card
+
+          shadow-2xl
+        "
+      >
+        {/* Header */}
+
+        <div
+          className="
+            relative
+            overflow-hidden
+
+            bg-gradient-to-r
+            from-red-600
+            via-rose-600
+            to-orange-500
+
+            px-8
+            py-7
+
+            text-white
+          "
+        >
+          <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+
+          <div className="relative flex items-start justify-between">
+
+            <div className="flex items-center gap-5">
+
+              <div
+                className="
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
+
+                  rounded-2xl
+
+                  bg-white/15
+                "
+              >
+                <TriangleAlert size={30} />
+              </div>
+
+              <div>
+
+                <h2 className="text-3xl font-bold">
+                  Delete Trip
+                </h2>
+
+                <p className="mt-2 text-red-100">
+                  This action is permanent and
+                  cannot be undone.
+                </p>
+
+              </div>
+
+            </div>
+
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="
+                flex
+                h-11
+                w-11
+                items-center
+                justify-center
+
+                rounded-xl
+
+                bg-white/10
+
+                transition
+
+                hover:bg-white/20
+              "
+            >
+              <X size={22} />
+            </button>
+
           </div>
 
-          <p className="text-sm text-red-600">
-            This action cannot be undone.
-          </p>
         </div>
 
-        <div className="flex justify-end gap-3 border-t p-6">
+        {/* Body */}
+
+        <div className="space-y-6 p-8">
+
+          <div
+            className="
+              rounded-3xl
+
+              border
+              border-border
+
+              bg-muted/40
+
+              p-6
+            "
+          >
+            <p className="text-sm text-muted-foreground">
+              Trip
+            </p>
+
+            <h3 className="mt-2 text-2xl font-bold text-foreground">
+              {trip.source_airport.iata_code}
+              {" → "}
+              {trip.destination_airport.iata_code}
+            </h3>
+
+            <p className="mt-3 text-muted-foreground">
+              {trip.departure_date}
+            </p>
+
+          </div>
+
+          <div
+            className="
+              rounded-2xl
+
+              border
+              border-red-500/20
+
+              bg-red-500/10
+
+              p-5
+            "
+          >
+            <p className="font-semibold text-red-600 dark:text-red-400">
+              Warning
+            </p>
+
+            <p className="mt-2 text-sm text-muted-foreground">
+              Deleting this trip will permanently remove
+              its itinerary, preferences and associated
+              travel information.
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Footer */}
+
+        <div
+          className="
+            flex
+            justify-end
+            gap-4
+
+            border-t
+            border-border
+
+            bg-muted/30
+
+            p-6
+          "
+        >
           <button
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border px-4 py-2 hover:bg-gray-100"
+            className="
+              rounded-2xl
+
+              border
+              border-border
+
+              bg-card
+
+              px-6
+              py-3
+
+              font-semibold
+
+              text-foreground
+
+              transition
+
+              hover:bg-muted
+            "
           >
             Cancel
           </button>
@@ -80,12 +280,46 @@ export default function DeleteTripModal({
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
+            className="
+              inline-flex
+              items-center
+              gap-2
+
+              rounded-2xl
+
+              bg-gradient-to-r
+              from-red-600
+              to-rose-600
+
+              px-6
+              py-3
+
+              font-semibold
+              text-white
+
+              shadow-lg
+
+              transition
+
+              hover:-translate-y-0.5
+              hover:shadow-red-500/30
+
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
           >
-            {loading ? "Deleting..." : "Delete Trip"}
+            <Trash2 size={18} />
+
+            {loading
+              ? "Deleting..."
+              : "Delete Trip"}
           </button>
+
         </div>
+
       </div>
-    </div>
+
+    </div>,
+    document.body
   );
 }

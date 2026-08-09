@@ -1,55 +1,458 @@
 "use client";
 
-import { FaBell, FaSearch, FaUserCircle } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default function Navbar() {
+import { useTheme } from "next-themes";
+
+import { Switch } from "@/components/ui/switch";
+
+import {
+  FaBars,
+  FaUserCircle,
+  FaChevronDown,
+  FaUser,
+  FaCog,
+  FaLock,
+  FaSignOutAlt,
+  FaMoon,
+} from "react-icons/fa";
+
+import { toast } from "sonner";
+
+import { getProfile } from "@/services/profile.service";
+import { logout } from "@/services/auth.service";
+
+import { UserProfile } from "@/types/profile";
+
+interface NavbarProps {
+  onMenuClick: () => void;
+}
+
+export default function Navbar({
+  onMenuClick,
+}: NavbarProps) {
+  const router = useRouter();
+
+  const {
+    resolvedTheme,
+    theme,
+    setTheme,
+  } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+
+  console.log({
+    theme,
+    resolvedTheme,
+  });
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [profile, setProfile] =
+    useState<UserProfile | null>(null);
+
+  const dropdownRef =
+    useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getProfile()
+      .then(setProfile)
+      .catch(console.error);
+  }, []);
+
+  // Refetch the profile whenever it's updated elsewhere in the app
+  // (e.g. after saving changes on the /profile page), so the avatar
+  // and name in the navbar update immediately without a full reload.
+  useEffect(() => {
+    const handleProfileUpdated = () => {
+      getProfile()
+        .then(setProfile)
+        .catch(console.error);
+    };
+
+    window.addEventListener(
+      "profile-updated",
+      handleProfileUpdated
+    );
+
+    return () =>
+      window.removeEventListener(
+        "profile-updated",
+        handleProfileUpdated
+      );
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (
+      event: MouseEvent
+    ) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      setOpen(false);
+
+      await logout();
+
+      toast.success(
+        "Logged out successfully."
+      );
+
+      router.push("/");
+
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        "Failed to logout."
+      );
+    }
+  };
+
   return (
-    <header className="flex h-20 items-center justify-between border-b bg-white px-8">
-      {/* Left */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Dashboard
-        </h2>
+    <header
+      className="
+        sticky
+        top-0
+        z-30
 
-        <p className="text-sm text-gray-500">
-          Welcome back to TripPilot
-        </p>
-      </div>
+        border-b
+        border-slate-200
 
-      {/* Right */}
-      <div className="flex items-center gap-6">
-        {/* Search */}
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        bg-white/80
+        backdrop-blur-xl
 
-          <input
-            type="text"
-            placeholder="Search trips..."
-            className="w-72 rounded-lg border border-gray-300 py-2 pl-10 pr-4 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          />
+        px-4
+        py-4
+
+        transition-colors
+
+        dark:border-slate-800
+        dark:bg-slate-900/80
+
+        sm:px-6
+        lg:px-8
+      "
+    >
+      <div className="flex items-center justify-between">
+
+        {/* Left */}
+
+        <div className="flex items-center gap-4">
+
+          <button
+            onClick={onMenuClick}
+            className="
+              rounded-2xl
+              bg-white
+              p-3
+              shadow-md
+              transition-all
+              hover:-translate-y-0.5
+              hover:shadow-lg
+              dark:bg-slate-800
+              lg:hidden
+            "
+          >
+            <FaBars className="text-slate-700 dark:text-white" />
+          </button>
+
+          <h2 className="hidden text-xl font-bold text-slate-900 dark:text-white lg:block">
+            TripPilot
+          </h2>
+
         </div>
 
-        {/* Notification */}
-        <button className="relative rounded-full p-2 transition hover:bg-gray-100">
-          <FaBell className="text-xl text-gray-600" />
+        {/* Right */}
 
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
+        <div
+          ref={dropdownRef}
+          className="relative"
+        >
+          <button
+            onClick={() =>
+              setOpen(!open)
+            }
+            className="
+              flex
+              items-center
+              gap-3
 
-        {/* User */}
-        <div className="flex items-center gap-3 rounded-lg border px-3 py-2">
-          <FaUserCircle className="text-3xl text-blue-600" />
+              rounded-2xl
 
-          <div>
-            <p className="text-sm font-semibold text-gray-900">
-              Muhammad Basith
-            </p>
+              bg-white
 
-            <p className="text-xs text-gray-500">
-              Software Engineer
-            </p>
-          </div>
+              px-3
+              py-2
+
+              shadow-md
+
+              transition-all
+
+              hover:-translate-y-0.5
+              hover:shadow-lg
+
+              dark:bg-slate-800
+            "
+          >
+            {profile?.profile_picture ? (
+              <img
+                src={
+                  profile.profile_picture
+                }
+                alt="Profile"
+                className="h-11 w-11 rounded-full object-cover"
+              />
+            ) : (
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-blue-100
+
+                  dark:bg-slate-700
+                "
+              >
+                <FaUserCircle
+                  size={26}
+                  className="text-slate-500 dark:text-slate-300"
+                />
+              </div>
+            )}
+
+            <div className="hidden text-left md:block">
+
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {profile
+                  ? `${profile.first_name} ${profile.last_name}`
+                  : "Loading..."}
+              </p>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                @{profile?.username}
+              </p>
+
+            </div>
+
+            <FaChevronDown
+              className={`hidden text-slate-400 transition-transform md:block ${
+                open
+                  ? "rotate-180"
+                  : ""
+              }`}
+            />
+          </button>
+
+          {open && (
+            <div
+              className="
+                absolute
+                right-0
+                mt-3
+
+                w-64
+
+                overflow-hidden
+
+                rounded-3xl
+
+                border
+                border-slate-200
+
+                bg-white
+
+                shadow-2xl
+
+                dark:border-slate-700
+                dark:bg-slate-900
+              "
+            >
+              <Link
+                href="/profile"
+                onClick={() =>
+                  setOpen(false)
+                }
+                className="
+                  flex
+                  items-center
+                  gap-4
+
+                  px-6
+                  py-4
+
+                  transition
+
+                  hover:bg-slate-50
+
+                  dark:hover:bg-slate-800
+                "
+              >
+                <FaUser />
+
+                My Profile
+              </Link>
+
+              <Link
+                href="/settings"
+                onClick={() =>
+                  setOpen(false)
+                }
+                className="
+                  flex
+                  items-center
+                  gap-4
+
+                  px-6
+                  py-4
+
+                  transition
+
+                  hover:bg-slate-50
+
+                  dark:hover:bg-slate-800
+                "
+              >
+                <FaCog />
+
+                Settings
+              </Link>
+
+              <Link
+                href="/settings"
+                onClick={() =>
+                  setOpen(false)
+                }
+                className="
+                  flex
+                  items-center
+                  gap-4
+
+                  px-6
+                  py-4
+
+                  transition
+
+                  hover:bg-slate-50
+
+                  dark:hover:bg-slate-800
+                "
+              >
+                <FaLock />
+
+                Change Password
+              </Link>
+
+              {/* Theme Toggle */}
+
+<div className="border-t border-slate-200 dark:border-slate-700">
+
+<div
+  className="
+    flex
+    items-center
+    justify-between
+
+    px-6
+    py-4
+  "
+>
+
+  <div className="flex items-center gap-4">
+
+    <FaMoon className="text-slate-500" />
+
+    <div>
+
+      <p className="font-medium text-slate-900 dark:text-white">
+        Dark Mode
+      </p>
+
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        {isDark ? "Enabled" : "Disabled"}
+      </p>
+
+    </div>
+
+  </div>
+
+  <Switch
+    checked={isDark}
+    onCheckedChange={(checked) =>
+      setTheme(
+        checked
+          ? "dark"
+          : "light"
+      )
+    }
+  />
+
+</div>
+
+</div>
+
+              <div className="border-t border-slate-200 dark:border-slate-700" />
+
+              <button
+                onClick={
+                  handleLogout
+                }
+                className="
+                  flex
+                  w-full
+                  items-center
+                  gap-4
+
+                  px-6
+                  py-4
+
+                  text-red-600
+
+                  transition
+
+                  hover:bg-red-50
+
+                  dark:hover:bg-red-950/40
+                "
+              >
+                <FaSignOutAlt />
+
+                Logout
+              </button>
+
+            </div>
+          )}
         </div>
+
       </div>
     </header>
   );

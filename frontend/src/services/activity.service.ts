@@ -1,33 +1,55 @@
 import api from "@/lib/axios";
+import { Activity } from "@/types/itinerary";
 
-export const getActivities = async (dayId: number | string) => {
-  const response = await api.get("/activities/");
+/* -------------------------------- */
+/* Get Activities for a Specific Day */
+/* -------------------------------- */
+
+export const getActivities = async (
+  dayId: number | string
+): Promise<Activity[]> => {
+  const response = await api.get<Activity[]>("/activities/");
 
   return response.data.filter(
-    (activity: any) =>
+    (activity: Activity) =>
       Number(activity.itinerary_day) === Number(dayId)
   );
 };
 
-export const createActivity = async (data: {
-  itinerary_day: number;
-  title: string;
-  location: string;
-  start_time: string;
-  end_time?: string;
-  estimated_cost: number;
-  priority: string;
-  notes?: string;
-}) => {
-  const response = await api.post("/activities/", data);
+/* -------------------------------- */
+/* Get All Activities */
+/* -------------------------------- */
+
+export const getAllActivities = async (): Promise<Activity[]> => {
+  const response = await api.get<Activity[]>("/activities/");
+
   return response.data;
 };
 
+/* -------------------------------- */
+/* Create Activity */
+/* -------------------------------- */
+
+export const createActivity = async (
+  data: Omit<Activity, "id">
+): Promise<Activity> => {
+  const response = await api.post<Activity>(
+    "/activities/",
+    data
+  );
+
+  return response.data;
+};
+
+/* -------------------------------- */
+/* Update Activity */
+/* -------------------------------- */
+
 export const updateActivity = async (
   id: number,
-  data: any
-) => {
-  const response = await api.put(
+  data: Partial<Omit<Activity, "id">>
+): Promise<Activity> => {
+  const response = await api.put<Activity>(
     `/activities/${id}/`,
     data
   );
@@ -35,8 +57,12 @@ export const updateActivity = async (
   return response.data;
 };
 
+/* -------------------------------- */
+/* Delete Activity */
+/* -------------------------------- */
+
 export const deleteActivity = async (
   id: number
-) => {
+): Promise<void> => {
   await api.delete(`/activities/${id}/`);
 };

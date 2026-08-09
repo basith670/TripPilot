@@ -1,21 +1,26 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from cloudinary.models import CloudinaryField
+
 
 class User(AbstractUser):
+
     def __str__(self):
         return self.username
 
 
 class UserProfile(models.Model):
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name="profile",
     )
 
-    profile_picture = models.ImageField(
-        upload_to="profiles/",
+    profile_picture = CloudinaryField(
+        "profile_picture",
+        folder="trippilot/profiles",
         blank=True,
         null=True,
     )
@@ -52,6 +57,16 @@ class UserProfile(models.Model):
     preferred_language = models.CharField(
         max_length=20,
         default="en",
+    )
+
+    theme = models.CharField(
+        max_length=10,
+        choices=[
+            ("light", "Light"),
+            ("dark", "Dark"),
+            ("system", "System"),
+        ],
+        default="system",
     )
 
     is_verified = models.BooleanField(

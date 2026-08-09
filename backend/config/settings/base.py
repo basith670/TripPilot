@@ -12,30 +12,56 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+from decouple import config
+import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+
+# ==========================================================
+# BASE DIRECTORY
+# ==========================================================
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# ==========================================================
+# SECURITY
+# ==========================================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=True, cast=bool)
+DEBUG = config(
+    "DEBUG",
+    default=True,
+    cast=bool,
+)
 
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost"
+    default="127.0.0.1,localhost",
 ).split(",")
 
+# ==========================================================
+# CLOUDINARY
+# ==========================================================
 
-# Application definition
+cloudinary.config(
+    cloud_name=config("CLOUDINARY_CLOUD_NAME"),
+    api_key=config("CLOUDINARY_API_KEY"),
+    api_secret=config("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
+
+
+# ==========================================================
+# APPLICATIONS
+# ==========================================================
 
 INSTALLED_APPS = [
+
     # Django Apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -45,6 +71,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Third-party Apps
+    "django_filters",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "rest_framework_simplejwt",
@@ -56,127 +83,118 @@ INSTALLED_APPS = [
     "apps.travel",
     "apps.trips",
     "apps.dashboard",
+    "apps.ai",
+    "apps.flights",
+    "apps.hotels",
 ]
+
+
+# ==========================================================
+# MIDDLEWARE
+# ==========================================================
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'config.urls'
+
+# ==========================================================
+# URL / WSGI
+# ==========================================================
+
+ROOT_URLCONF = "config.urls"
+
+WSGI_APPLICATION = "config.wsgi.application"
+
+
+# ==========================================================
+# TEMPLATES
+# ==========================================================
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+
+        "DIRS": [],
+
+        "APP_DIRS": True,
+
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# ==========================================================
+# DATABASE
+# ==========================================================
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.parse(
+        config("DATABASE_URL"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# ==========================================================
+# PASSWORD VALIDATION
+# ==========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME":
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME":
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME":
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME":
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator",
     },
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
+# ==========================================================
+# INTERNATIONALIZATION
+# ==========================================================
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Django REST Framework
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
-}
-
-# Custom User Model
-
-AUTH_USER_MODEL = "accounts.User"
-
-# CORS Configuration
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
-# DRF Spectacular
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "TripPilot API",
-    "DESCRIPTION": "API documentation for the TripPilot backend.",
-    "VERSION": "1.0.0",
-}
-
-# Static Files
+# ==========================================================
+# STATIC FILES
+# ==========================================================
 
 STATIC_URL = "static/"
 
@@ -186,9 +204,155 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-# Media Files
+
+# ==========================================================
+# MEDIA FILES
+# ==========================================================
 
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# ==========================================================
+# DJANGO REST FRAMEWORK
+# ==========================================================
+
+REST_FRAMEWORK = {
+
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+
+    "DEFAULT_SCHEMA_CLASS":
+        "drf_spectacular.openapi.AutoSchema",
+
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ),
+}
+
+
+# ==========================================================
+# JWT
+# ==========================================================
+
+SIMPLE_JWT = {
+
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=config(
+            "ACCESS_TOKEN_LIFETIME",
+            default=60,
+            cast=int,
+        )
+    ),
+
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=config(
+            "REFRESH_TOKEN_LIFETIME",
+            default=7,
+            cast=int,
+        )
+    ),
+
+    "ROTATE_REFRESH_TOKENS": False,
+
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    "UPDATE_LAST_LOGIN": True,
+}
+
+
+# ==========================================================
+# CUSTOM USER MODEL
+# ==========================================================
+
+AUTH_USER_MODEL = "accounts.User"
+
+
+# ==========================================================
+# DRF SPECTACULAR
+# ==========================================================
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "TripPilot API",
+    "DESCRIPTION": "API documentation for the TripPilot backend.",
+    "VERSION": "1.0.0",
+}
+
+
+# ==========================================================
+# GEMINI AI
+# ==========================================================
+
+GEMINI_API_KEY = config(
+    "GEMINI_API_KEY",
+)
+
+GEMINI_MODEL = config(
+    "GEMINI_MODEL",
+    default="gemini-3.6-flash",
+)
+
+
+# ==========================================================
+# RESEND
+# ==========================================================
+
+RESEND_API_KEY = config(
+    "RESEND_API_KEY",
+)
+
+
+# ==========================================================
+# FRONTEND
+# ==========================================================
+
+FRONTEND_URL = config(
+    "FRONTEND_URL",
+    default="http://localhost:3000",
+)
+
+
+# ==========================================================
+# CORS
+# ==========================================================
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    FRONTEND_URL,
+]
+
+# Matches every Vercel deployment URL for this project (preview + production),
+# since Vercel generates a new random subdomain on every deploy.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://trip-pilot(-[\w]+)*(-m-basith)?\.vercel\.app$",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
+# ==========================================================
+# CSRF
+# ==========================================================
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://*.vercel.app",
+    FRONTEND_URL,
+]

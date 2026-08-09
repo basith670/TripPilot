@@ -3,130 +3,354 @@
 import Link from "next/link";
 
 import {
-  FaPlaneDeparture,
-  FaCalendarAlt,
-  FaUsers,
-  FaWallet,
-} from "react-icons/fa";
+  Plane,
+  CalendarDays,
+  Wallet,
+  Users,
+  Pencil,
+  Trash2,
+  ArrowRight,
+} from "lucide-react";
 
-interface Airport {
-  id: number;
-  name: string;
-  iata_code: string;
-}
-
-interface Trip {
-  id: number;
-  source_airport: Airport;
-  destination_airport: Airport;
-  departure_date: string;
-  return_date: string;
-  travelers: number;
-  cabin_class: string;
-  budget: string;
-  status: string;
-  notes: string;
-}
+import { Trip } from "@/types/trip";
 
 interface TripCardProps {
   trip: Trip;
-  onEdit: (trip: Trip) => void;
-  onDelete: (trip: Trip) => void;
+  onEdit?: (trip: Trip) => void;
+  onDelete?: (trip: Trip) => void;
 }
-
-const statusColors: Record<string, string> = {
-  PLANNING: "bg-yellow-100 text-yellow-700",
-  CONFIRMED: "bg-green-100 text-green-700",
-  COMPLETED: "bg-blue-100 text-blue-700",
-  CANCELLED: "bg-red-100 text-red-700",
-};
 
 export default function TripCard({
   trip,
   onEdit,
   onDelete,
 }: TripCardProps) {
+  const badge = () => {
+    switch (trip.status.toLowerCase()) {
+      case "planning":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300";
+
+      case "confirmed":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300";
+
+      case "completed":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300";
+
+      case "cancelled":
+        return "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300";
+
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      {/* Clickable Area */}
-      <Link
-        href={`/trips/${trip.id}`}
-        className="block cursor-pointer"
-      >
-        {/* Route */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            {trip.source_airport.iata_code} → {trip.destination_airport.iata_code}
-          </h2>
+    <article
+      className="
+        group
+        relative
+        overflow-hidden
 
-          <span
-            className={`rounded-full px-3 py-1 text-sm font-semibold ${
-              statusColors[trip.status] || "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {trip.status}
-          </span>
+        rounded-[30px]
+
+        border
+        border-border
+
+        bg-card
+
+        p-7
+
+        shadow-lg
+
+        transition-all
+        duration-300
+
+        hover:-translate-y-2
+        hover:border-blue-500/30
+        hover:shadow-2xl
+      "
+    >
+      {/* Glow */}
+
+      <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-cyan-500/10 blur-3xl" />
+      </div>
+
+      <div className="relative z-10">
+
+        {/* Header */}
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-5
+
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
+          "
+        >
+
+          <div className="flex items-start gap-4">
+
+            <div
+              className="
+                flex
+                h-14
+                w-14
+                items-center
+                justify-center
+
+                rounded-2xl
+
+                bg-blue-500/10
+
+                text-blue-600
+                dark:text-blue-400
+              "
+            >
+              <Plane size={24} />
+            </div>
+
+            <div>
+
+              <h2 className="text-3xl font-bold text-foreground">
+                {trip.source_airport.iata_code}
+                <span className="mx-2 text-blue-600 dark:text-blue-400">
+                  →
+                </span>
+                {trip.destination_airport.iata_code}
+              </h2>
+
+              <p className="mt-2 text-sm text-muted-foreground">
+                {trip.source_airport.name}
+              </p>
+
+              <p className="text-sm text-muted-foreground">
+                {trip.destination_airport.name}
+              </p>
+
+            </div>
+
+          </div>
+
+          <div
+          className="
+            flex
+            items-center
+            gap-2
+            self-end
+            shrink-0
+          "
+        >
+
+            <span
+              className={`
+                rounded-full
+                px-4
+                py-2
+                text-sm
+                font-semibold
+                ${badge()}
+              `}
+            >
+              {trip.status}
+            </span>
+
+            <button
+              onClick={() => onEdit?.(trip)}
+              className="
+                rounded-xl
+                p-2.5
+                text-muted-foreground
+                transition-all
+                hover:bg-muted
+                hover:text-blue-600
+                dark:hover:text-blue-400
+              "
+            >
+              <Pencil size={18} />
+            </button>
+
+            <button
+              onClick={() => onDelete?.(trip)}
+              className="
+                rounded-xl
+                p-2.5
+                text-red-500
+                transition-all
+                hover:bg-red-500/10
+              "
+            >
+              <Trash2 size={18} />
+            </button>
+
+          </div>
+
         </div>
-
-        <p className="mt-1 text-gray-500">
-          {trip.source_airport.name} → {trip.destination_airport.name}
-        </p>
 
         {/* Details */}
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="flex items-center gap-2">
-            <FaCalendarAlt className="text-blue-600" />
-            <span className="text-gray-700">
-              {trip.departure_date} - {trip.return_date}
-            </span>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <FaUsers className="text-green-600" />
-            <span className="text-gray-700">
-              {trip.travelers} Travelers
-            </span>
-          </div>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2">
 
-          <div className="flex items-center gap-2">
-            <FaPlaneDeparture className="text-orange-500" />
-            <span className="text-gray-700">
-              {trip.cabin_class}
-            </span>
-          </div>
+          <InfoItem
+            icon={<CalendarDays size={18} />}
+            label="Departure"
+            value={trip.departure_date}
+          />
 
-          <div className="flex items-center gap-2">
-            <FaWallet className="text-purple-600" />
-            <span className="font-semibold text-gray-900">
-              ₹{Number(trip.budget).toLocaleString("en-IN")}
-            </span>
-          </div>
+          <InfoItem
+            icon={<CalendarDays size={18} />}
+            label="Return"
+            value={trip.return_date}
+          />
+
+          <InfoItem
+            icon={<Users size={18} />}
+            label="Travellers"
+            value={trip.travelers}
+          />
+
+          <InfoItem
+            icon={<Wallet size={18} />}
+            label="Budget"
+            value={`₹${Number(
+              trip.budget
+            ).toLocaleString("en-IN")}`}
+            highlight
+          />
+
         </div>
 
-        {/* Notes */}
-        {trip.notes && (
-          <p className="mt-5 rounded-lg bg-gray-50 p-3 text-gray-600">
-            {trip.notes}
-          </p>
-        )}
-      </Link>
+        {/* Footer */}
 
-      {/* Action Buttons */}
-      <div className="mt-6 flex justify-end gap-3 border-t pt-4">
-        <button
-          onClick={() => onEdit(trip)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-        >
-          Edit
-        </button>
+        <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
 
-        <button
-          onClick={() => onDelete(trip)}
-          className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-        >
-          Delete
-        </button>
+          <div>
+
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Cabin Class
+            </p>
+
+            <p className="mt-1 font-semibold text-foreground">
+              {trip.cabin_class.replaceAll("_", " ")}
+            </p>
+
+          </div>
+
+          <Link
+            href={`/trips/${trip.id}`}
+            className="
+              inline-flex
+              items-center
+              gap-2
+
+              rounded-2xl
+
+              bg-gradient-to-r
+              from-blue-600
+              to-indigo-600
+
+              px-6
+              py-3
+
+              font-semibold
+              text-white
+
+              shadow-lg
+
+              transition-all
+              duration-300
+
+              hover:-translate-y-0.5
+              hover:shadow-blue-500/30
+            "
+          >
+            View Trip
+
+            <ArrowRight
+              size={18}
+              className="transition-transform group-hover:translate-x-1"
+            />
+          </Link>
+
+        </div>
+
       </div>
+
+    </article>
+  );
+}
+
+interface InfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  highlight?: boolean;
+}
+
+function InfoItem({
+  icon,
+  label,
+  value,
+  highlight = false,
+}: InfoItemProps) {
+  return (
+    <div
+      className="
+        flex
+        items-center
+        gap-4
+
+        rounded-2xl
+
+        border
+        border-border
+
+        bg-muted/40
+
+        p-4
+      "
+    >
+      <div
+        className="
+          flex
+          h-11
+          w-11
+          items-center
+          justify-center
+
+          rounded-xl
+
+          bg-blue-500/10
+
+          text-blue-600
+          dark:text-blue-400
+        "
+      >
+        {icon}
+      </div>
+
+      <div>
+
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+
+        <p
+          className={`mt-1 font-semibold ${
+            highlight
+              ? "text-blue-600 dark:text-blue-400"
+              : "text-foreground"
+          }`}
+        >
+          {value}
+        </p>
+
+      </div>
+
     </div>
   );
 }

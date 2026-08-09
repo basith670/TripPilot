@@ -1,17 +1,25 @@
 from django.urls import path
+
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
 
 from .views import (
     RegisterView,
+    LoginView,
     UserProfileView,
     LogoutView,
     ChangePasswordView,
     UserProfileDetailView,
+    ForgotPasswordView,
+    ResetPasswordView,
 )
+
 urlpatterns = [
+    # ==========================================
+    # Authentication
+    # ==========================================
+
     path(
         "register/",
         RegisterView.as_view(),
@@ -20,8 +28,8 @@ urlpatterns = [
 
     path(
         "login/",
-        TokenObtainPairView.as_view(),
-        name="token_obtain_pair",
+        LoginView.as_view(),
+        name="login",
     ),
 
     path(
@@ -31,26 +39,46 @@ urlpatterns = [
     ),
 
     path(
+        "logout/",
+        LogoutView.as_view(),
+        name="logout",
+    ),
+
+    # ==========================================
+    # User
+    # ==========================================
+
+    path(
         "me/",
         UserProfileView.as_view(),
         name="current-user",
     ),
 
     path(
-    "logout/",
-    LogoutView.as_view(),
-    name="logout",
+        "profile/",
+        UserProfileDetailView.as_view(),
+        name="profile",
+    ),
+
+    # ==========================================
+    # Password
+    # ==========================================
+
+    path(
+        "change-password/",
+        ChangePasswordView.as_view(),
+        name="change-password",
     ),
 
     path(
-    "change-password/",
-    ChangePasswordView.as_view(),
-    name="change-password",
+        "forgot-password/",
+        ForgotPasswordView.as_view(),
+        name="forgot-password",
     ),
 
     path(
-    "profile/",
-    UserProfileDetailView.as_view(),
-    name="profile",
+        "reset-password/",
+        ResetPasswordView.as_view(),
+        name="reset-password",
     ),
 ]

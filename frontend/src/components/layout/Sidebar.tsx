@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 import {
   FaHome,
@@ -14,11 +15,21 @@ import {
   FaCog,
 } from "react-icons/fa";
 
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const menuItems = [
   {
     name: "Dashboard",
     href: "/dashboard",
     icon: FaHome,
+  },
+  {
+    name: "AI Planner",
+    href: "/planner",
+    icon: FaRobot,
   },
   {
     name: "My Trips",
@@ -40,11 +51,6 @@ const menuItems = [
     href: "/hotels",
     icon: FaHotel,
   },
-  {
-    name: "AI Planner",
-    href: "/planner",
-    icon: FaRobot,
-  },
 ];
 
 const bottomItems = [
@@ -60,73 +66,303 @@ const bottomItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-white">
-      <div className="border-b p-6">
-        <h1 className="text-2xl font-bold text-blue-600">
-          ✈️ TripPilot
-        </h1>
+    <aside
+      className={`
+        fixed
+        inset-y-0
+        left-0
+        z-50
 
-        <p className="mt-1 text-sm text-gray-500">
-          AI Travel Planner
-        </p>
-      </div>
+        w-72
 
-      <nav className="flex-1 px-4 py-6">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
+        transform
+        transition-transform
+        duration-300
 
-            const active = pathname === item.href;
+        lg:static
+        lg:translate-x-0
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 transition
-                  ${
-                    active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+        ${
+          isOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        }
+      `}
+    >
+      <div
+        className="
+          flex
+          h-full
+          flex-col
 
-      <div className="border-t p-4">
-        <ul className="space-y-2">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
+          border-r
+          border-slate-200
 
-            const active = pathname === item.href;
+          bg-white/90
+          backdrop-blur-xl
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 transition
-                  ${
-                    active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+          shadow-xl
+
+          transition-colors
+          duration-300
+
+          dark:border-slate-800
+          dark:bg-slate-900/90
+        "
+      >
+        {/* Logo */}
+
+        <div
+          className="
+            border-b
+            border-slate-200
+            p-7
+
+            dark:border-slate-800
+          "
+        >
+          <div className="flex items-center gap-4">
+
+            <Image
+              src="/logo/trippilot-logo.png"
+              alt="TripPilot"
+              width={190}
+              height={48}
+              priority
+              className="h-12 w-auto"
+            />
+
+            <div>
+
+              <h1 className="text-3xl font-bold text-blue-600">
+                TripPilot
+              </h1>
+
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                AI Travel Planner
+              </p>
+
+            </div>
+
+          </div>
+        </div>
+
+        {/* Navigation */}
+
+        <nav className="flex-1 overflow-y-auto px-5 py-7">
+
+          <ul className="space-y-3">
+
+            {menuItems.map((item) => {
+
+              const Icon = item.icon;
+
+              const active =
+                pathname === item.href;
+
+              return (
+                <li key={item.name}>
+
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={`
+                      group
+
+                      flex
+                      items-center
+                      gap-4
+
+                      rounded-2xl
+
+                      px-5
+                      py-3.5
+
+                      font-medium
+
+                      transition-all
+                      duration-300
+
+                      ${
+                        active
+                          ? `
+                              bg-gradient-to-r
+                              from-blue-600
+                              via-cyan-500
+                              to-indigo-500
+
+                              text-white
+
+                              shadow-lg
+                            `
+                          : `
+                              text-slate-700
+
+                              hover:bg-blue-50
+                              hover:text-blue-700
+
+                              dark:text-slate-300
+                              dark:hover:bg-slate-800
+                              dark:hover:text-cyan-400
+                            `
+                      }
+                    `}
+                  >
+                    <Icon
+                      className={`text-lg ${
+                        active
+                          ? "text-white"
+                          : "group-hover:text-blue-600 dark:group-hover:text-cyan-400"
+                      }`}
+                    />
+
+                    {item.name}
+
+                  </Link>
+
+                </li>
+              );
+
+            })}
+
+          </ul>
+
+        </nav>
+
+        {/* Bottom */}
+
+        <div
+          className="
+            border-t
+            border-slate-200
+            p-5
+
+            dark:border-slate-800
+          "
+        >
+          <ul className="space-y-2">
+
+            {bottomItems.map((item) => {
+
+              const Icon = item.icon;
+
+              const active =
+                pathname === item.href;
+
+              return (
+                <li key={item.name}>
+
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={`
+                      group
+
+                      flex
+                      items-center
+                      gap-4
+
+                      rounded-2xl
+
+                      px-5
+                      py-3
+
+                      transition-all
+                      duration-300
+
+                      ${
+                        active
+                          ? `
+                              bg-gradient-to-r
+                              from-blue-600
+                              to-cyan-500
+
+                              text-white
+
+                              shadow-lg
+                            `
+                          : `
+                              text-slate-700
+
+                              hover:bg-blue-50
+                              hover:text-blue-700
+
+                              dark:text-slate-300
+                              dark:hover:bg-slate-800
+                              dark:hover:text-cyan-400
+                            `
+                      }
+                    `}
+                  >
+                    <Icon
+                      className={`${
+                        active
+                          ? "text-white"
+                          : "group-hover:text-blue-600 dark:group-hover:text-cyan-400"
+                      }`}
+                    />
+
+                    {item.name}
+
+                  </Link>
+
+                </li>
+              );
+
+            })}
+
+          </ul>
+
+          {/* Footer */}
+
+          <div
+            className="
+              mt-8
+
+              rounded-2xl
+
+              border
+
+              border-blue-100
+
+              bg-gradient-to-r
+              from-blue-50
+              via-cyan-50
+              to-indigo-50
+
+              p-4
+
+              transition-colors
+
+              dark:border-slate-700
+              dark:from-slate-800
+              dark:via-slate-850
+              dark:to-slate-800
+            "
+          >
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Powered by
+            </p>
+
+            <p className="font-semibold text-blue-700 dark:text-cyan-400">
+              TripPilot AI
+            </p>
+
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+              Version 1.0
+            </p>
+
+          </div>
+
+        </div>
+
       </div>
     </aside>
   );

@@ -4,147 +4,591 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import BudgetOverview from "@/components/budget/BudgetOverview";
 import ItinerarySection from "@/components/itinerary/ItinerarySection";
 
+import {
+  getBudgetSummary,
+  BudgetSummary,
+} from "@/services/budget.service";
+
 import { getTrip } from "@/services/trips.service";
+
+import { Trip } from "@/types/trip";
 
 export default function TripDetailsPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [trip, setTrip] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [trip, setTrip] = useState<Trip | null>(null);
+
+  const [budgetSummary, setBudgetSummary] =
+    useState<BudgetSummary | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    const fetchTrip = async () => {
+    const fetchTripDetails = async () => {
       try {
-        const data = await getTrip(id);
-        setTrip(data);
+        setLoading(true);
+
+        const [tripData, budgetData] =
+          await Promise.all([
+            getTrip(id),
+            getBudgetSummary(id),
+          ]);
+
+        setTrip(tripData);
+        setBudgetSummary(budgetData);
       } catch (error) {
-        console.error("Failed to fetch trip:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
 
     if (id) {
-      fetchTrip();
+      fetchTripDetails();
     }
   }, [id]);
 
   return (
     <DashboardLayout>
+
+      {/* Loading */}
+
       {loading ? (
-        <div className="rounded-2xl bg-white p-8 shadow">
-          <p className="text-gray-500">Loading trip...</p>
+
+        <div
+          className="
+            rounded-[32px]
+            border
+            border-border
+            bg-card
+            p-16
+            text-center
+            shadow-xl
+          "
+        >
+
+          <div
+            className="
+              mx-auto
+              h-12
+              w-12
+              animate-spin
+              rounded-full
+              border-4
+              border-blue-600
+              border-t-transparent
+            "
+          />
+
+          <p className="mt-6 text-muted-foreground">
+            Loading trip...
+          </p>
+
         </div>
+
       ) : !trip ? (
-        <div className="rounded-2xl bg-white p-8 shadow">
-          <p className="text-red-500">Trip not found.</p>
+
+        <div
+          className="
+            rounded-[32px]
+            border
+            border-border
+            bg-card
+            p-16
+            text-center
+            shadow-xl
+          "
+        >
+
+          <h2 className="text-3xl font-bold text-foreground">
+            Trip Not Found
+          </h2>
+
+          <p className="mt-4 text-muted-foreground">
+            We couldn't find this itinerary.
+          </p>
+
         </div>
+
       ) : (
-        <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              {trip.source_airport.iata_code} →{" "}
-              {trip.destination_airport.iata_code}
-            </h1>
 
-            <p className="mt-2 text-gray-500">
-              {trip.source_airport.name} →{" "}
-              {trip.destination_airport.name}
-            </p>
-          </div>
+        <>
 
-          {/* Trip Overview */}
-          <div className="rounded-2xl bg-white p-8 shadow">
-            <h2 className="mb-6 text-2xl font-bold text-gray-900">
-              Trip Overview
-            </h2>
+          {/* Hero */}
 
-            <div className="grid gap-6 md:grid-cols-2">
+          <section
+            className="
+              relative
+              overflow-hidden
+
+              rounded-[36px]
+
+              bg-gradient-to-r
+              from-slate-900
+              via-blue-900
+              to-indigo-900
+
+              p-10
+
+              text-white
+
+              shadow-2xl
+            "
+          >
+
+            <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+
+            <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+
+            <div className="relative flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Departure
-                </h3>
 
-                <p className="mt-2 text-lg font-medium">
-                  {trip.departure_date}
+                <span
+                  className="
+                    inline-flex
+                    items-center
+                    rounded-full
+                    bg-white/10
+                    px-4
+                    py-2
+                    text-sm
+                    font-semibold
+                  "
+                >
+                  ✈ AI Planned Journey
+                </span>
+
+                <h1 className="mt-6 text-5xl font-bold">
+
+                  {trip.source_airport.iata_code}
+
+                  <span className="mx-5 text-cyan-300">
+                    →
+                  </span>
+
+                  {trip.destination_airport.iata_code}
+
+                </h1>
+
+                <p className="mt-4 text-lg text-slate-300">
+
+                  {trip.source_airport.name}
+
+                  {" → "}
+
+                  {trip.destination_airport.name}
+
                 </p>
+
               </div>
 
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Return
-                </h3>
+              <div
+                className="
+                  rounded-3xl
+                  border
+                  border-white/10
+                  bg-white/10
+                  p-8
+                  backdrop-blur-xl
+                "
+              >
 
-                <p className="mt-2 text-lg font-medium">
-                  {trip.return_date}
+                <p className="text-sm text-slate-300">
+                  Total Budget
                 </p>
-              </div>
 
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Travelers
-                </h3>
+                <h2 className="mt-3 text-4xl font-bold">
 
-                <p className="mt-2 text-lg font-medium">
-                  {trip.travelers}
-                </p>
-              </div>
+                  ₹
+                  {Number(
+                    trip.budget
+                  ).toLocaleString("en-IN")}
 
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Cabin Class
-                </h3>
+                </h2>
 
-                <p className="mt-2 text-lg font-medium">
-                  {trip.cabin_class}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Budget
-                </h3>
-
-                <p className="mt-2 text-lg font-semibold text-green-600">
-                  ₹{Number(trip.budget).toLocaleString("en-IN")}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </h3>
-
-                <span className="mt-2 inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+                <span
+                  className="
+                    mt-6
+                    inline-flex
+                    rounded-full
+                    bg-white/20
+                    px-4
+                    py-2
+                    text-sm
+                    font-semibold
+                  "
+                >
                   {trip.status}
                 </span>
+
               </div>
+
             </div>
 
-            {trip.notes && (
-              <div className="mt-8">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Notes
-                </h3>
+          </section>
 
-                <div className="mt-3 rounded-xl bg-gray-50 p-4">
-                  <p className="text-gray-700">{trip.notes}</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Statistics */}
 
-          {/* Itinerary */}
-          <ItinerarySection
-            tripId={id}
-            travelers={trip.travelers}
-            />
-        </div>
-      )}
-    </DashboardLayout>
-  );
+          <section className="mt-10">
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+              <StatCard
+                label="Travelers"
+                value={trip.travelers}
+              />
+
+              <StatCard
+                label="Cabin Class"
+                value={
+                  trip.cabin_class
+                    .replaceAll("_", " ")
+                    .toLowerCase()
+                    .replace(
+                      /\b\w/g,
+                      (c) => c.toUpperCase()
+                    )
+                }
+              />
+
+              <StatCard
+                label="Departure"
+                value={trip.departure_date}
+              />
+
+              <StatCard
+                label="Return"
+                value={trip.return_date}
+              />
+
+            </div>
+
+          </section>
+
+          {/* Trip Overview */}
+
+          <section
+            className="
+              mt-10
+
+              rounded-[32px]
+
+              border
+              border-border
+
+              bg-card
+
+              p-8
+
+              shadow-lg
+            "
+          >
+
+            <div className="mb-8">
+
+              <span
+                className="
+                  rounded-full
+                  bg-blue-100
+                  dark:bg-blue-500/15
+                  px-4
+                  py-2
+                  text-sm
+                  font-semibold
+                  text-blue-700
+                  dark:text-blue-300
+                "
+              >
+                Trip Information
+              </span>
+
+              <h2 className="mt-4 text-3xl font-bold text-foreground">
+                Overview
+              </h2>
+
+            </div>
+
+            <div className="grid gap-8 lg:grid-cols-2">
+
+              <InfoCard
+                title="Source Airport"
+                value={trip.source_airport.name}
+              />
+
+              <InfoCard
+                title="Destination Airport"
+                value={trip.destination_airport.name}
+              />
+
+              <InfoCard
+                title="Budget"
+                value={`₹${Number(
+                  trip.budget
+                ).toLocaleString("en-IN")}`}
+              />
+
+              <InfoCard
+                title="Status"
+                value={trip.status}
+              />
+
+            </div>
+
+          </section>
+                    {/* Notes */}
+
+                    {trip.notes && (
+
+<section
+  className="
+    mt-10
+
+    rounded-[32px]
+
+    border
+    border-border
+
+    bg-card
+
+    p-8
+
+    shadow-lg
+  "
+>
+
+  <span
+    className="
+      rounded-full
+      bg-amber-100
+      dark:bg-amber-500/15
+      px-4
+      py-2
+      text-sm
+      font-semibold
+      text-amber-700
+      dark:text-amber-300
+    "
+  >
+    Personal Notes
+  </span>
+
+  <div
+    className="
+      mt-6
+      rounded-2xl
+      bg-muted
+      p-6
+    "
+  >
+
+    <p className="leading-8 text-foreground">
+      {trip.notes}
+    </p>
+
+  </div>
+
+</section>
+
+)}
+
+{/* Budget */}
+
+{budgetSummary && (
+
+<section className="mt-10">
+
+  <div className="mb-6">
+
+    <span
+      className="
+        rounded-full
+        bg-emerald-100
+        dark:bg-emerald-500/15
+        px-4
+        py-2
+        text-sm
+        font-semibold
+        text-emerald-700
+        dark:text-emerald-300
+      "
+    >
+      Financial Overview
+    </span>
+
+    <h2 className="mt-4 text-3xl font-bold text-foreground">
+      Budget Summary
+    </h2>
+
+  </div>
+
+  <BudgetOverview
+    summary={budgetSummary}
+  />
+
+</section>
+
+)}
+
+{/* Itinerary */}
+
+<section className="mt-10">
+
+<div className="mb-6">
+
+  <span
+    className="
+      rounded-full
+      bg-blue-100
+      dark:bg-blue-500/15
+      px-4
+      py-2
+      text-sm
+      font-semibold
+      text-blue-700
+      dark:text-blue-300
+    "
+  >
+    Travel Timeline
+  </span>
+
+  <h2 className="mt-4 text-3xl font-bold text-foreground">
+    Daily Itinerary
+  </h2>
+
+  <p className="mt-2 text-muted-foreground">
+    Manage every day of your journey with
+    activities, hotels and transportation.
+  </p>
+
+</div>
+
+<ItinerarySection
+  tripId={id}
+  travelers={trip.travelers}
+/>
+
+</section>
+
+</>
+
+)}
+
+</DashboardLayout>
+);
+}
+
+/* ------------------------------------------------ */
+/* Components */
+/* ------------------------------------------------ */
+
+interface StatCardProps {
+label: string;
+value: React.ReactNode;
+}
+
+function StatCard({
+label,
+value,
+}: StatCardProps) {
+return (
+<div
+className="
+rounded-[28px]
+
+border
+border-border
+
+bg-card
+
+p-6
+
+shadow-lg
+
+transition-all
+duration-300
+
+hover:-translate-y-1
+hover:border-blue-500/30
+hover:shadow-xl
+"
+>
+<p className="text-sm font-medium text-muted-foreground">
+{label}
+</p>
+
+<h3
+className="
+mt-3
+
+break-words
+
+text-xl
+font-bold
+
+leading-tight
+
+text-foreground
+
+lg:text-2xl
+"
+>
+{value}
+</h3>
+</div>
+);
+}
+
+interface InfoCardProps {
+title: string;
+value: React.ReactNode;
+}
+
+function InfoCard({
+title,
+value,
+}: InfoCardProps) {
+return (
+<div
+className="
+rounded-2xl
+
+border
+border-border
+
+bg-muted
+
+p-6
+
+transition-all
+duration-300
+
+hover:border-blue-500/30
+"
+>
+<p className="text-sm font-medium text-muted-foreground">
+{title}
+</p>
+
+<h3
+className="
+mt-2
+
+break-words
+
+text-lg
+font-semibold
+
+text-foreground
+"
+>
+{value}
+</h3>
+</div>
+);
 }

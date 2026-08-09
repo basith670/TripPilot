@@ -1,0 +1,31 @@
+name,code,country,hub,type
+Air India,AI,IN,DEL,Full Service
+Air India Express,IX,IN,COK,Low Cost
+IndiGo,6E,IN,DEL,Low Cost
+SpiceJet,SG,IN,DEL,Low Cost
+Akasa Air,QP,IN,BOM,Low Cost
+Vistara,UK,IN,DEL,Full Service
+Emirates,EK,AE,DXB,Full Service
+Etihad Airways,EY,AE,AUH,Full Service
+Qatar Airways,QR,QA,DOH,Full Service
+FlyDubai,FZ,AE,DXB,Low Cost
+Air Arabia,G9,AE,SHJ,Low Cost
+Singapore Airlines,SQ,SG,SIN,Full Service
+Scoot,TR,SG,SIN,Low Cost
+Malaysia Airlines,MH,MY,KUL,Full Service
+Thai Airways,TG,TH,BKK,Full Service
+British Airways,BA,GB,LHR,Full Service
+Lufthansa,LH,DE,FRA,Full Service
+Air France,AF,FR,CDG,Full Service
+KLM,KL,NL,AMS,Full Service
+Turkish Airlines,TK,TR,IST,Full Service
+Delta Air Lines,DL,US,ATL,Full Service
+United Airlines,UA,US,ORD,Full Service
+American Airlines,AA,US,DFW,Full Service
+Japan Airlines,JL,JP,HND,Full Service
+ANA,NH,JP,HND,Full Service
+Cathay Pacific,CX,HK,HKG,Full Service
+Qantas,QF,AU,SYD,Full Service
+Air Canada,AC,CA,YYZ,Full Service
+Swiss,LX,CH,ZRH,Full Service
+Finnair,AY,FI,HEL,Full Service

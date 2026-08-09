@@ -14,23 +14,17 @@ import {
 
 import { toast } from "sonner";
 
+import { Activity } from "@/types/itinerary";
+
 interface Props {
   dayId: number;
+  onActivityChanged?: () => void;
 }
 
-interface Activity {
-  id: number;
-  itinerary_day: number;
-  title: string;
-  location: string;
-  start_time: string;
-  end_time?: string;
-  estimated_cost: string;
-  priority: string;
-  notes: string;
-}
-
-export default function ActivitySection({ dayId }: Props) {
+export default function ActivitySection({
+  dayId,
+  onActivityChanged,
+}: Props) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +32,9 @@ export default function ActivitySection({ dayId }: Props) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
+  const [selectedActivityId, setSelectedActivityId] =
+    useState<number | null>(null);
+
   const [deleting, setDeleting] = useState(false);
 
   const [selectedActivity, setSelectedActivity] =
@@ -71,14 +67,16 @@ export default function ActivitySection({ dayId }: Props) {
 
       const data = await getActivities(dayId);
 
-      // Sort by start time
-      data.sort((a: Activity, b: Activity) =>
+      data.sort((a, b) =>
         a.start_time.localeCompare(b.start_time)
       );
 
       setActivities(data);
     } catch (error) {
-      console.error("Failed to load activities:", error);
+      console.error(
+        "Failed to load activities:",
+        error
+      );
     } finally {
       setLoading(false);
     }
@@ -98,20 +96,23 @@ export default function ActivitySection({ dayId }: Props) {
   
       toast.success("Activity deleted successfully.");
   
+      await fetchActivities();
+  
+      onActivityChanged?.();
+  
       setDeleteDialogOpen(false);
       setSelectedActivityId(null);
-  
-      fetchActivities();
     } catch (error) {
       console.error(error);
+  
       toast.error("Failed to delete activity.");
     } finally {
       setDeleting(false);
     }
   };
 
-  const filteredActivities = activities.filter(
-    (activity) => {
+  const filteredActivities =
+    activities.filter((activity) => {
       const matchesSearch =
         activity.title
           .toLowerCase()
@@ -122,191 +123,461 @@ export default function ActivitySection({ dayId }: Props) {
 
       const matchesPriority =
         priorityFilter === "ALL" ||
-        activity.priority === priorityFilter;
+        activity.priority ===
+          priorityFilter;
 
-      return matchesSearch && matchesPriority;
-    }
-  );
+      return (
+        matchesSearch &&
+        matchesPriority
+      );
+    });
 
-  return (
-    <>
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-semibold text-gray-800">
-            Activities
-          </h4>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-green-600 px-3 py-2 text-sm text-white transition hover:bg-green-700"
-          >
-            + Add Activity
-          </button>
-        </div>
-
-        {/* Search & Filter */}
-        <div className="mb-6 flex flex-col gap-3 md:flex-row">
-          <input
-            type="text"
-            placeholder="🔍 Search activities..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-          />
-
-          <select
-            value={priorityFilter}
-            onChange={(e) =>
-              setPriorityFilter(e.target.value)
-            }
-            className="rounded-lg border border-gray-300 px-4 py-2"
-          >
-            <option value="ALL">
-              All Priorities
-            </option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">
-              Medium
-            </option>
-            <option value="LOW">Low</option>
-          </select>
-        </div>
-
-        {loading ? (
-          <p className="text-sm text-gray-500">
-            Loading activities...
-          </p>
-        ) : filteredActivities.length === 0 ? (
-          <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">
-            No matching activities found.
+    return (
+      <>
+        <div
+          className="
+            rounded-[30px]
+            border
+            border-border
+            bg-card/70
+            backdrop-blur-xl
+            p-6
+            lg:p-8
+            shadow-xl
+          "
+        >
+          {/* Header */}
+    
+          <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+    
+            <div>
+    
+              <span
+                className="
+                  inline-flex
+                  items-center
+                  rounded-full
+                  bg-blue-500/10
+                  px-4
+                  py-2
+                  text-sm
+                  font-semibold
+                  text-blue-500
+                "
+              >
+                Daily Activities
+              </span>
+    
+              <h3 className="mt-4 text-3xl font-bold text-foreground">
+                Activities
+              </h3>
+    
+              <p className="mt-2 text-muted-foreground">
+                Organize transportation, sightseeing,
+                dining and every moment of your journey.
+              </p>
+    
+            </div>
+    
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="
+                inline-flex
+                items-center
+                justify-center
+    
+                rounded-2xl
+    
+                bg-gradient-to-r
+                from-emerald-500
+                to-green-600
+    
+                px-6
+                py-3
+    
+                font-semibold
+                text-white
+    
+                shadow-lg
+    
+                transition-all
+    
+                hover:-translate-y-1
+                hover:shadow-emerald-500/30
+              "
+            >
+              + Add Activity
+            </button>
+    
           </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredActivities.map(
-              (activity, index) => (
-                <div
-                  key={activity.id}
-                  className="relative flex gap-5"
-                >
-                  {/* Timeline */}
-                  <div className="flex flex-col items-center">
-                    <div className="z-10 h-4 w-4 rounded-full bg-blue-600"></div>
-
-                    {index !==
-                      filteredActivities.length -
-                        1 && (
-                      <div className="mt-1 h-full w-0.5 bg-gray-300"></div>
-                    )}
-                  </div>
-
-                  {/* Card */}
-                  <div className="mb-4 flex-1 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-lg">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <h5 className="text-lg font-semibold text-gray-900">
-                          {activity.title}
-                        </h5>
-
-                        {activity.location && (
-                          <p className="mt-1 text-sm text-gray-500">
-                            📍 {activity.location}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedActivity(
-                              activity
-                            );
-                            setIsEditModalOpen(
-                              true
-                            );
-                          }}
-                          className="rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setSelectedActivityId(activity.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                      <span>
-                        🕒 {activity.start_time}
-                        {activity.end_time &&
-                          ` - ${activity.end_time}`}
-                      </span>
-
-                      <span>
-                        💰 ₹
-                        {Number(
-                          activity.estimated_cost
-                        ).toLocaleString("en-IN")}
-                      </span>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getPriorityBadge(
-                          activity.priority
-                        )}`}
-                      >
-                        {activity.priority}
-                      </span>
-                    </div>
-
-                    {activity.notes && (
-                      <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                        {activity.notes}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            )}
+    
+          {/* Search */}
+    
+          <div className="mb-8 grid gap-4 lg:grid-cols-[1fr_260px]">
+    
+            <input
+              type="text"
+              placeholder="🔍 Search activities..."
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              className="
+                rounded-2xl
+                border
+                border-border
+                bg-background
+                px-5
+                py-3
+    
+                text-foreground
+    
+                outline-none
+    
+                transition
+    
+                focus:border-blue-500
+              "
+            />
+    
+            <select
+              value={priorityFilter}
+              onChange={(e) =>
+                setPriorityFilter(
+                  e.target.value
+                )
+              }
+              className="
+                rounded-2xl
+                border
+                border-border
+                bg-background
+                px-5
+                py-3
+    
+                text-foreground
+    
+                outline-none
+    
+                transition
+    
+                focus:border-blue-500
+              "
+            >
+              <option value="ALL">
+                All Priorities
+              </option>
+    
+              <option value="HIGH">
+                High
+              </option>
+    
+              <option value="MEDIUM">
+                Medium
+              </option>
+    
+              <option value="LOW">
+                Low
+              </option>
+    
+            </select>
+    
           </div>
-        )}
-      </div>
+    
+          {loading ? (
+    
+            <div className="py-16 text-center">
+    
+              <div
+                className="
+                  mx-auto
+                  h-12
+                  w-12
+                  animate-spin
+                  rounded-full
+                  border-4
+                  border-blue-600
+                  border-t-transparent
+                "
+              />
+    
+              <p className="mt-6 text-muted-foreground">
+                Loading activities...
+              </p>
+    
+            </div>
+    
+          ) : filteredActivities.length === 0 ? (
+    
+            <div
+              className="
+                rounded-2xl
+                border
+                border-dashed
+                border-border
+                bg-background/60
+                p-10
+                text-center
+              "
+            >
+              <h4 className="text-xl font-semibold text-foreground">
+                No Activities
+              </h4>
+    
+              <p className="mt-2 text-muted-foreground">
+                Add your first activity for this day.
+              </p>
+    
+            </div>
+    
+          ) : (
+    
+            <div className="space-y-7">
+    
+              {filteredActivities.map(
+                (
+                  activity,
+                  index
+                ) => (
+    
+                  <div
+                    key={activity.id}
+                    className="relative flex gap-5"
+                  >
+    
+                    {/* Timeline */}
+    
+                    <div className="flex flex-col items-center">
+    
+                      <div
+                        className="
+                          z-10
+                          h-5
+                          w-5
+                          rounded-full
+                          bg-gradient-to-r
+                          from-blue-500
+                          to-cyan-500
+                          shadow-lg
+                        "
+                      />
+    
+                      {index !==
+                        filteredActivities.length - 1 && (
+    
+                        <div className="h-full w-[2px] bg-border" />
+    
+                      )}
+    
+                    </div>
+    
+                    {/* Card */}
+    
+                    <div
+                      className="
+                        flex-1
+    
+                        rounded-[26px]
+    
+                        border
+                        border-border
+    
+                        bg-card
+    
+                        p-6
+    
+                        shadow-lg
+    
+                        transition-all
+    
+                        duration-300
+    
+                        hover:-translate-y-1
+                        hover:shadow-2xl
+                      "
+                    >
+    
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+    
+                        <div>
+    
+                          <h4 className="text-2xl font-bold text-foreground">
+                            {activity.title}
+                          </h4>
+    
+                          {activity.location && (
+    
+                            <p className="mt-2 text-muted-foreground">
+                              📍 {activity.location}
+                            </p>
+    
+                          )}
+    
+                        </div>
+    
+                        <div className="flex gap-3">
 
-      <AddActivityModal
-        isOpen={isModalOpen}
-        dayId={dayId}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchActivities}
-      />
+<button
+  onClick={() => {
+    setSelectedActivity(activity);
+    setIsEditModalOpen(true);
+  }}
+  className="
+    rounded-xl
+    bg-blue-500/10
+    px-4
+    py-2
+    font-medium
+    text-blue-500
+    transition
+    hover:bg-blue-500/20
+  "
+>
+  ✏️ Edit
+</button>
 
-      <EditActivityModal
-        isOpen={isEditModalOpen}
-        activity={selectedActivity}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedActivity(null);
-        }}
-        onSuccess={fetchActivities}
-      />
-      <ConfirmDialog
-        isOpen={deleteDialogOpen}
-        title="Delete Activity"
-        message="Are you sure you want to delete this activity? This action cannot be undone."
-        confirmText="Delete"
-        loading={deleting}
-        onConfirm={handleDelete}
-        onCancel={() => {
-            setDeleteDialogOpen(false);
-            setSelectedActivityId(null);
-        }}
-        />
-    </>
-  );
+<button
+  onClick={() => {
+    setSelectedActivityId(activity.id);
+    setDeleteDialogOpen(true);
+  }}
+  className="
+    rounded-xl
+    bg-red-500/10
+    px-4
+    py-2
+    font-medium
+    text-red-500
+    transition
+    hover:bg-red-500/20
+  "
+>
+  🗑 Delete
+</button>
+
+</div>
+
+</div>
+
+<div className="mt-6 flex flex-wrap items-center gap-5 text-sm">
+
+<div className="flex items-center gap-2 text-muted-foreground">
+  🕒
+  <span>
+    {activity.start_time}
+    {activity.end_time &&
+      ` - ${activity.end_time}`}
+  </span>
+</div>
+
+<div className="flex items-center gap-2 text-muted-foreground">
+  💰
+  <span>
+    ₹
+    {Number(
+      activity.estimated_cost
+    ).toLocaleString("en-IN")}
+  </span>
+</div>
+
+<span
+  className={`
+    rounded-full
+    px-3
+    py-1
+    text-xs
+    font-semibold
+    ${getPriorityBadge(activity.priority)}
+  `}
+>
+  {activity.priority}
+</span>
+
+</div>
+
+{activity.notes && (
+
+<div
+  className="
+    mt-6
+
+    rounded-2xl
+
+    border
+    border-border
+
+    bg-background/60
+
+    p-4
+
+    text-muted-foreground
+    leading-7
+  "
+>
+  {activity.notes}
+</div>
+
+)}
+
+</div>
+
+</div>
+
+))
+
+}
+
+</div>
+
+)}
+
+</div>
+
+<AddActivityModal
+isOpen={isModalOpen}
+dayId={dayId}
+onClose={() =>
+  setIsModalOpen(false)
+}
+onSuccess={() => {
+  fetchActivities();
+  onActivityChanged?.();
+}}
+/>
+
+<EditActivityModal
+isOpen={isEditModalOpen}
+activity={selectedActivity}
+onClose={() => {
+  setIsEditModalOpen(false);
+  setSelectedActivity(null);
+}}
+onSuccess={() => {
+  fetchActivities();
+  onActivityChanged?.();
+}}
+/>
+
+<ConfirmDialog
+isOpen={deleteDialogOpen}
+title="Delete this activity?"
+message="This activity will be permanently removed from your itinerary. This action cannot be undone."
+confirmText={
+  deleting
+    ? "Deleting..."
+    : "Delete Activity"
+}
+loading={deleting}
+variant="danger"
+onConfirm={handleDelete}
+onCancel={() => {
+  if (deleting) return;
+
+  setDeleteDialogOpen(false);
+  setSelectedActivityId(null);
+}}
+/>
+
+</>
+);
 }

@@ -108,9 +108,10 @@ class Airport(models.Model):
     )
 
     icao_code = models.CharField(
-        max_length=4,
-        unique=True,
-        blank=True,
+    max_length=4,
+    unique=True,
+    blank=True,
+    null=True,
     )
 
     latitude = models.DecimalField(
