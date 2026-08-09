@@ -28,6 +28,13 @@ class TripPlannerService:
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=0.3,
+                    # Explicit timeout (ms) so a slow/hung Gemini call
+                    # fails cleanly with our own error response instead
+                    # of the request hanging until Gunicorn's worker
+                    # timeout kills the whole process mid-request.
+                    http_options=types.HttpOptions(
+                        timeout=60_000,
+                    ),
                 ),
             )
 
