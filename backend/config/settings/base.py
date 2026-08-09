@@ -320,8 +320,13 @@ FRONTEND_URL = config(
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://trip-pilot-luvfb6i6n-m-basith.vercel.app",
     FRONTEND_URL,
+]
+
+# Matches every Vercel deployment URL for this project (preview + production),
+# since Vercel generates a new random subdomain on every deploy.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://trip-pilot(-[\w]+)*(-m-basith)?\.vercel\.app$",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -334,6 +339,6 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://trip-pilot-luvfb6i6n-m-basith.vercel.app",
+    "https://*.vercel.app",
     FRONTEND_URL,
 ]
