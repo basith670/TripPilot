@@ -77,7 +77,7 @@ A modern full-stack travel planning platform that turns a few trip details into 
 
 ## 📸 Project Preview
 
-![Homepage](docs/screenshots/01-homepage.png)
+![Homepage](docs/screenshots/01-login.png)
 
 ---
 
