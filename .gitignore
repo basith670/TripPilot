@@ -43,3 +43,9 @@ frontend/.env
 # =========================
 *.swp
 *.swo
+# =========================
+# TripPilot Database Data
+# =========================
+backend/data/neon_fixtures/
+backend/trippilot_data.json
+backend/split_fixture.py
