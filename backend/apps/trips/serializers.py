@@ -11,8 +11,13 @@ from .models import (
     Trip,
     ItineraryDay,
     Activity,
+    LayoverTrip,
 )
 
+
+# ==========================================================
+# ACTIVITY
+# ==========================================================
 
 class ActivitySerializer(serializers.ModelSerializer):
 
@@ -36,6 +41,10 @@ class ActivitySerializer(serializers.ModelSerializer):
         )
 
 
+# ==========================================================
+# ITINERARY DAY
+# ==========================================================
+
 class ItineraryDaySerializer(serializers.ModelSerializer):
 
     activities = ActivitySerializer(
@@ -56,7 +65,15 @@ class ItineraryDaySerializer(serializers.ModelSerializer):
         )
 
 
+# ==========================================================
+# TRIP
+# ==========================================================
+
 class TripSerializer(serializers.ModelSerializer):
+
+    # ------------------------------------------------------
+    # AIRPORTS
+    # ------------------------------------------------------
 
     source_airport = AirportSerializer(
         read_only=True,
@@ -78,26 +95,78 @@ class TripSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
+    # ------------------------------------------------------
+    # SELECTED FLIGHT
+    #
+    # Keeps existing functionality.
+    # ------------------------------------------------------
+
     selected_flight = FlightSerializer(
         read_only=True,
     )
+
+    # ------------------------------------------------------
+    # ALL FLIGHTS
+    #
+    # IMPORTANT:
+    #
+    # Trip model:
+    #
+    # flights = Flight.objects related_name
+    #
+    # This exposes BOTH:
+    #
+    # OUTBOUND
+    # RETURN
+    # ------------------------------------------------------
+
+    flights = FlightSerializer(
+        many=True,
+        read_only=True,
+    )
+
+    # ------------------------------------------------------
+    # SELECTED HOTEL
+    # ------------------------------------------------------
 
     selected_hotel = HotelSerializer(
         read_only=True,
     )
 
+    # ------------------------------------------------------
+    # TRAVELERS
+    # ------------------------------------------------------
+
     travelers = serializers.IntegerField(
         read_only=True,
     )
 
+    # ------------------------------------------------------
+    # DAYS
+    # ------------------------------------------------------
+
+    days = ItineraryDaySerializer(
+        many=True,
+        read_only=True,
+    )
+
     class Meta:
+
         model = Trip
 
         fields = (
+            # ------------------------------------------------
+            # BASIC
+            # ------------------------------------------------
+
             "id",
 
             "title",
             "overview",
+
+            # ------------------------------------------------
+            # AIRPORTS
+            # ------------------------------------------------
 
             "source_airport",
             "destination_airport",
@@ -105,8 +174,16 @@ class TripSerializer(serializers.ModelSerializer):
             "source_airport_id",
             "destination_airport_id",
 
+            # ------------------------------------------------
+            # DATES
+            # ------------------------------------------------
+
             "departure_date",
             "return_date",
+
+            # ------------------------------------------------
+            # TRAVELERS
+            # ------------------------------------------------
 
             "adults",
             "children",
@@ -115,19 +192,65 @@ class TripSerializer(serializers.ModelSerializer):
 
             "travelers",
 
+            # ------------------------------------------------
+            # CABIN
+            # ------------------------------------------------
+
             "cabin_class",
+
+            # ------------------------------------------------
+            # BUDGET
+            # ------------------------------------------------
 
             "budget",
 
+            # ------------------------------------------------
+            # STATUS
+            # ------------------------------------------------
+
             "status",
+
+            # ------------------------------------------------
+            # FLIGHTS
+            #
+            # IMPORTANT:
+            #
+            # selected_flight
+            #     → currently selected flight
+            #
+            # flights
+            #     → ALL flights belonging to trip
+            #
+            # This allows frontend to display:
+            #
+            # OUTBOUND + RETURN
+            # ------------------------------------------------
+
+            "flights",
 
             "selected_flight",
 
+            # ------------------------------------------------
+            # HOTEL
+            # ------------------------------------------------
+
             "selected_hotel",
+
+            # ------------------------------------------------
+            # NOTES
+            # ------------------------------------------------
 
             "notes",
 
+            # ------------------------------------------------
+            # ITINERARY
+            # ------------------------------------------------
+
             "days",
+
+            # ------------------------------------------------
+            # TIMESTAMPS
+            # ------------------------------------------------
 
             "created_at",
             "updated_at",
@@ -140,10 +263,9 @@ class TripSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-    days = ItineraryDaySerializer(
-        many=True,
-        read_only=True,
-    )
+    # ======================================================
+    # VALIDATION
+    # ======================================================
 
     def validate(self, attrs):
 
@@ -192,7 +314,16 @@ class TripSerializer(serializers.ModelSerializer):
             ),
         )
 
-        if source == destination:
+        # --------------------------------------------------
+        # SAME AIRPORT
+        # --------------------------------------------------
+
+        if (
+            source is not None
+            and destination is not None
+            and source == destination
+        ):
+
             raise serializers.ValidationError(
                 {
                     "destination_airport_id":
@@ -200,7 +331,15 @@ class TripSerializer(serializers.ModelSerializer):
                 }
             )
 
-        if departure and departure < date.today():
+        # --------------------------------------------------
+        # PAST DEPARTURE
+        # --------------------------------------------------
+
+        if (
+            departure
+            and departure < date.today()
+        ):
+
             raise serializers.ValidationError(
                 {
                     "departure_date":
@@ -208,11 +347,16 @@ class TripSerializer(serializers.ModelSerializer):
                 }
             )
 
+        # --------------------------------------------------
+        # RETURN BEFORE DEPARTURE
+        # --------------------------------------------------
+
         if (
             departure
             and return_date
             and return_date < departure
         ):
+
             raise serializers.ValidationError(
                 {
                     "return_date":
@@ -220,7 +364,15 @@ class TripSerializer(serializers.ModelSerializer):
                 }
             )
 
-        if budget is not None and budget < 0:
+        # --------------------------------------------------
+        # NEGATIVE BUDGET
+        # --------------------------------------------------
+
+        if (
+            budget is not None
+            and budget < 0
+        ):
+
             raise serializers.ValidationError(
                 {
                     "budget":
@@ -231,18 +383,29 @@ class TripSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class SaveLayoverTripSerializer(serializers.Serializer):
+# ==========================================================
+# SAVE LAYOVER TRIP
+# ==========================================================
+
+class SaveLayoverTripSerializer(
+    serializers.Serializer
+):
 
     planner = serializers.JSONField()
 
     result = serializers.JSONField()
 
-from .models import LayoverTrip
 
+# ==========================================================
+# LAYOVER TRIP
+# ==========================================================
 
-class LayoverTripSerializer(serializers.ModelSerializer):
+class LayoverTripSerializer(
+    serializers.ModelSerializer
+):
 
     class Meta:
+
         model = LayoverTrip
 
         fields = (

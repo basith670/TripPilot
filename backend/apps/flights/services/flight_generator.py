@@ -2,6 +2,8 @@ import math
 import random
 from datetime import datetime, timedelta
 
+from django.utils import timezone
+
 from apps.flights.models import (
     Airline,
     FlightRoute,
@@ -17,6 +19,10 @@ class FlightGenerator:
     # Earth's radius used for Haversine distance calculation
     EARTH_RADIUS_KM = 6371
 
+    # Minimum time required between outbound arrival
+    # and same-day return departure.
+    RETURN_BUFFER_HOURS = 3
+
     # =====================================================
     # GENERATE FLIGHT
     # =====================================================
@@ -27,8 +33,9 @@ class FlightGenerator:
         source_airport,
         destination_airport,
         cabin_class="ECONOMY",
+        departure_date=None,
+        earliest_datetime=None,
     ):
-
         source_iata = source_airport.upper()
         destination_iata = destination_airport.upper()
 
@@ -59,13 +66,9 @@ class FlightGenerator:
 
             is_domestic = route.is_domestic
 
-            src_airport_obj = (
-                route.source_airport
-            )
+            src_airport_obj = route.source_airport
 
-            dst_airport_obj = (
-                route.destination_airport
-            )
+            dst_airport_obj = route.destination_airport
 
         # =================================================
         # FALLBACK ROUTE
@@ -117,7 +120,10 @@ class FlightGenerator:
         # DEPARTURE / ARRIVAL
         # =================================================
 
-        departure = cls.generate_departure()
+        departure = cls.generate_departure(
+            departure_date=departure_date,
+            earliest_datetime=earliest_datetime,
+        )
 
         arrival = (
             departure
@@ -183,7 +189,6 @@ class FlightGenerator:
         # =================================================
 
         return {
-
             # ---------------------------------------------
             # Airline
             # ---------------------------------------------
@@ -255,9 +260,7 @@ class FlightGenerator:
                 )
             ),
 
-            "duration_minutes": (
-                duration_minutes
-            ),
+            "duration_minutes": duration_minutes,
 
             # ---------------------------------------------
             # Distance
@@ -297,6 +300,17 @@ class FlightGenerator:
 
             "cabin_class": cabin_class,
 
+            # ---------------------------------------------
+            # Trip date
+            # ---------------------------------------------
+
+            "departure_date": (
+                departure.date().isoformat()
+            ),
+
+            "arrival_date": (
+                arrival.date().isoformat()
+            ),
         }
 
     # =====================================================
@@ -444,9 +458,7 @@ class FlightGenerator:
             * c
         )
 
-        return round(
-            distance
-        )
+        return round(distance)
 
     # =====================================================
     # PRICE
@@ -481,15 +493,10 @@ class FlightGenerator:
         )
 
         multiplier = {
-
             "ECONOMY": 1.0,
-
             "PREMIUM_ECONOMY": 1.5,
-
             "BUSINESS": 2.7,
-
             "FIRST": 4.3,
-
         }
 
         price *= multiplier.get(
@@ -537,26 +544,173 @@ class FlightGenerator:
     @classmethod
     def generate_departure(
         cls,
+        departure_date=None,
+        earliest_datetime=None,
     ):
+        """
+        Generate a realistic timezone-aware departure datetime.
 
-        base = (
-            datetime.now()
-            .replace(
-                minute=0,
-                second=0,
-                microsecond=0,
-            )
+        If departure_date is supplied, the generated flight
+        will occur on that date.
+
+        If earliest_datetime is supplied, the generated
+        departure will never occur before that datetime.
+
+        This is primarily used to ensure that a same-day
+        return flight occurs after the outbound flight arrives.
+        """
+
+        # =================================================
+        # USE PROVIDED TRIP DATE
+        # =================================================
+
+        if departure_date:
+
+            if isinstance(
+                departure_date,
+                datetime,
+            ):
+
+                base_date = departure_date.date()
+
+            else:
+
+                date_string = str(
+                    departure_date
+                )[:10]
+
+                base_date = datetime.strptime(
+                    date_string,
+                    "%Y-%m-%d",
+                ).date()
+
+        # =================================================
+        # FALLBACK
+        # =================================================
+
+        else:
+
+            base_date = timezone.localdate()
+
+        # =================================================
+        # DEFAULT FLIGHT WINDOW
+        #
+        # Flights can depart between:
+        #
+        # 06:00
+        # and
+        # 20:00
+        # =================================================
+
+        timezone_info = timezone.get_current_timezone()
+
+        earliest_allowed = timezone.make_aware(
+            datetime(
+                base_date.year,
+                base_date.month,
+                base_date.day,
+                6,
+                0,
+            ),
+            timezone=timezone_info,
         )
 
-        return (
-            base
-            + timedelta(
-                hours=random.randint(
-                    2,
-                    18,
+        latest_allowed = timezone.make_aware(
+            datetime(
+                base_date.year,
+                base_date.month,
+                base_date.day,
+                20,
+                0,
+            ),
+            timezone=timezone_info,
+        )
+
+        # =================================================
+        # APPLY EARLIEST DATETIME
+        # =================================================
+
+        if earliest_datetime:
+
+            # -------------------------------------------------
+            # Make naive datetime timezone-aware if necessary
+            # -------------------------------------------------
+
+            if timezone.is_naive(
+                earliest_datetime
+            ):
+
+                earliest_datetime = (
+                    timezone.make_aware(
+                        earliest_datetime,
+                        timezone=timezone_info,
+                    )
                 )
+
+            # -------------------------------------------------
+            # Use the later of:
+            #
+            # 06:00
+            # or
+            # earliest_datetime
+            # -------------------------------------------------
+
+            if (
+                earliest_datetime
+                > earliest_allowed
+            ):
+
+                earliest_allowed = (
+                    earliest_datetime
+                )
+
+        # =================================================
+        # CHECK WHETHER A VALID FLIGHT EXISTS
+        # =================================================
+
+        if (
+            earliest_allowed
+            > latest_allowed
+        ):
+
+            raise ValueError(
+                "No valid departure time available "
+                "for the requested flight date."
+            )
+
+        # =================================================
+        # CALCULATE AVAILABLE MINUTES
+        # =================================================
+
+        available_minutes = int(
+            (
+                latest_allowed
+                - earliest_allowed
+            ).total_seconds()
+            // 60
+        )
+
+        # =================================================
+        # GENERATE 15-MINUTE SLOT
+        # =================================================
+
+        number_of_slots = (
+            available_minutes // 15
+        )
+
+        random_slot = random.randint(
+            0,
+            number_of_slots,
+        )
+
+        departure = (
+            earliest_allowed
+            + timedelta(
+                minutes=random_slot * 15
             )
         )
+
+        return departure
 
     # =====================================================
     # STOPS
@@ -592,15 +746,10 @@ class FlightGenerator:
     ):
 
         baggage = {
-
             "ECONOMY": "15 kg",
-
             "PREMIUM_ECONOMY": "25 kg",
-
             "BUSINESS": "35 kg",
-
             "FIRST": "45 kg",
-
         }
 
         return baggage.get(

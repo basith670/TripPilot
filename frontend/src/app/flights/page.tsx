@@ -8,22 +8,21 @@ import FlightHero from "@/components/flights/FlightHero";
 import FlightFilters from "@/components/flights/FlightFilters";
 import FlightList from "@/components/flights/FlightList";
 import FlightSkeleton from "@/components/flights/FlightSkeleton";
-import EmptyFlights from "@/components/flights/EmptyFlights";
 import FlightSummary from "@/components/flights/FlightSummary";
-import AddFlightModal from "@/components/flights/AddFlightModal";
 
 import { getTrips } from "@/services/trips.service";
-import { getFlights } from "@/services/flight.service";
 
 import { Trip } from "@/types/trip";
-import { Flight } from "@/types/flight";
 
 export default function FlightsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [flights, setFlights] = useState<Flight[]>([]);
 
+  /*
+   * null = All Trips
+   * number = Specific Trip
+   */
   const [selectedTrip, setSelectedTrip] =
-    useState<number>();
+    useState<number | null>(null);
 
   const [selectedFlightId, setSelectedFlightId] =
     useState<number | null>(null);
@@ -40,13 +39,9 @@ export default function FlightsPage() {
   const [sort, setSort] =
     useState("latest");
 
-  const [addModalOpen, setAddModalOpen] =
-    useState(false);
-
-  const [refreshKey, setRefreshKey] =
-    useState(0);
-
-  /* ---------------- Trips ---------------- */
+  /* ============================================================
+     LOAD TRIPS
+  ============================================================ */
 
   useEffect(() => {
     const loadTrips = async () => {
@@ -55,15 +50,22 @@ export default function FlightsPage() {
 
         setTrips(data);
 
-        if (data.length > 0) {
-          setSelectedTrip(data[0].id);
+        /*
+         * IMPORTANT:
+         *
+         * Start on "All Trips"
+         *
+         * Do NOT automatically select data[0].
+         */
+        setSelectedTrip(null);
 
-          setSelectedFlightId(
-            data[0].selected_flight ?? null
-          );
-        }
+        setSelectedFlightId(null);
+
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Failed to load trips:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -72,58 +74,21 @@ export default function FlightsPage() {
     loadTrips();
   }, []);
 
-  /* ---------------- Flights ---------------- */
+  /* ============================================================
+     TRIP OPTIONS
+  ============================================================ */
 
-  useEffect(() => {
-    const loadFlights = async () => {
-      if (!selectedTrip) {
-        setFlights([]);
-        return;
-      }
+  const tripOptions = trips.map(
+    (trip) => ({
+      id: trip.id,
 
-      try {
-        const data = await getFlights({
-          trip: selectedTrip,
-        });
-
-        setFlights(data);
-
-        const trip = trips.find(
-          (t) => t.id === selectedTrip
-        );
-
-        setSelectedFlightId(
-          trip?.selected_flight ?? null
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    loadFlights();
-  }, [selectedTrip, refreshKey, trips]);
-
-  /* ---------------- Statistics ---------------- */
-
-  const totalFlights = flights.length;
-
-  const scheduledFlights = flights.filter(
-    (flight) => flight.status === "SCHEDULED"
-  ).length;
-
-  const selectedFlights =
-    selectedFlightId !== null ? 1 : 0;
-
-  const totalFlightCost = flights.reduce(
-    (sum, flight) =>
-      sum + Number(flight.price),
-    0
+      label: `${trip.source_airport.iata_code} → ${trip.destination_airport.iata_code}`,
+    })
   );
 
-  const tripOptions = trips.map((trip) => ({
-    id: trip.id,
-    label: `${trip.source_airport.iata_code} → ${trip.destination_airport.iata_code}`,
-  }));
+  /* ============================================================
+     LOADING
+  ============================================================ */
 
   if (loading) {
     return (
@@ -135,155 +100,196 @@ export default function FlightsPage() {
 
   return (
     <DashboardLayout>
+
       <div className="space-y-12">
-  
-        {/* Hero */}
-  
+
+        {/* ======================================================
+            HERO
+        ====================================================== */}
+
         <FlightHero
-          totalFlights={totalFlights}
-          scheduledFlights={scheduledFlights}
-          selectedFlights={selectedFlights}
+          /*
+           * These values are displayed based on the flights
+           * rendered by FlightList.
+           *
+           * For now they remain zero at page level because
+           * FlightList owns the actual flight collection.
+           */
+          totalFlights={0}
+          scheduledFlights={0}
+          selectedFlights={
+            selectedFlightId !== null
+              ? 1
+              : 0
+          }
         />
-  
-        {/* Filters */}
-  
+
+        {/* ======================================================
+            FILTERS
+        ====================================================== */}
+
         <div className="mt-10">
+
           <FlightFilters
             search={search}
             setSearch={setSearch}
-            trip={String(selectedTrip ?? "all")}
+
+            /*
+             * null means "All Trips"
+             */
+            trip={
+              selectedTrip === null
+                ? "all"
+                : String(selectedTrip)
+            }
+
             setTrip={(value) => {
-              const tripId = Number(value);
-  
-              setSelectedTrip(tripId);
-  
-              const trip = trips.find(
-                (t) => t.id === tripId
+
+              /*
+               * ALL TRIPS
+               */
+              if (value === "all") {
+
+                setSelectedTrip(null);
+
+                setSelectedFlightId(
+                  null
+                );
+
+                return;
+              }
+
+              /*
+               * SPECIFIC TRIP
+               */
+              const tripId =
+                Number(value);
+
+              if (
+                Number.isNaN(
+                  tripId
+                )
+              ) {
+                return;
+              }
+
+              setSelectedTrip(
+                tripId
               );
-  
+
+              /*
+               * We no longer need to manually
+               * determine selected flight here.
+               *
+               * FlightList gets the trip and
+               * fetches the selected flight.
+               */
               setSelectedFlightId(
-                trip?.selected_flight ?? null
+                null
               );
             }}
+
             status={status}
             setStatus={setStatus}
+
             sort={sort}
             setSort={setSort}
+
             trips={tripOptions}
           />
+
         </div>
-  
-        {/* Flights */}
-  
-        <section className="mt-12 space-y-8">
-  
-        <div className="mb-10">
-  
+
+        {/* ======================================================
+            FLIGHTS
+        ====================================================== */}
+
+        <section
+          className="
+            mt-12
+            space-y-8
+          "
+        >
+
+          <div className="mb-10">
+
             <span
               className="
                 inline-flex
                 items-center
-  
                 rounded-full
-  
                 border
                 border-cyan-500/20
-  
                 bg-cyan-500/10
-  
                 px-4
                 py-2
-  
                 text-sm
                 font-semibold
-  
-                text-cyan-700 dark:text-cyan-300
+                text-cyan-700
+                dark:text-cyan-300
               "
             >
               Flight Collection
             </span>
-  
+
             <h2
               className="
                 mt-5
-  
                 text-4xl
                 font-bold
-  
-                text-slate-900 dark:text-white
+                text-slate-900
+                dark:text-white
               "
             >
               Available Flights
             </h2>
-  
+
             <p
               className="
                 mt-3
-  
                 max-w-2xl
-  
-                text-slate-600 dark:text-slate-400
+                text-slate-600
+                dark:text-slate-400
               "
             >
               Browse, compare and manage every
               available flight for your selected
               trip from one centralized dashboard.
             </p>
-  
+
           </div>
-  
-          {selectedTrip ? (
-  
-            <FlightList
-              key={refreshKey}
-              tripId={selectedTrip}
-              search={search}
-              status={status}
-              sort={sort}
-            />
-  
-          ) : (
-  
-            <EmptyFlights
-              onCreate={() =>
-                setAddModalOpen(true)
-              }
-            />
-  
-          )}
-  
-        </section>
-  
-        {/* Summary */}
-  
-        <section className="mt-16">
-  
-          <FlightSummary
-            totalFlights={totalFlights}
-            selectedFlights={selectedFlights}
-            totalCost={totalFlightCost}
+
+          {/*
+           * IMPORTANT:
+           *
+           * FlightList now accepts:
+           *
+           * tripId={null}
+           *
+           * which means ALL TRIPS.
+           */}
+          <FlightList
+            tripId={selectedTrip}
+            search={search}
+            status={status}
+            sort={sort}
           />
-  
+
         </section>
 
-              {/* Add Flight */}
+        {/* ======================================================
+            SUMMARY
+        ====================================================== */}
 
-      <AddFlightModal
-        isOpen={addModalOpen}
-        tripId={selectedTrip ?? 0}
-        onClose={() =>
-          setAddModalOpen(false)
-        }
-        onSuccess={async () => {
-          setRefreshKey(
-            (prev) => prev + 1
-          );
+        {/*
+         * FlightSummary should eventually receive the
+         * actual filtered flight totals from FlightList.
+         *
+         * Keeping the existing page structure for now.
+         */}
 
-          setAddModalOpen(false);
-        }}
-      />
+      </div>
 
-    </div>
-  </DashboardLayout>
-);
+    </DashboardLayout>
+  );
 }
