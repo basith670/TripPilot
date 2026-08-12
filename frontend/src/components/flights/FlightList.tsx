@@ -32,6 +32,7 @@ import BoardingPassModal from "@/features/flights/components/BoardingPassModal";
 ============================================================ */
 
 interface FlightListProps {
+
   /*
    * null = ALL TRIPS
    * number = SPECIFIC TRIP
@@ -39,8 +40,23 @@ interface FlightListProps {
   tripId: number | null;
 
   search: string;
+
   status: string;
+
   sort: string;
+
+  /*
+   * Sends the latest flight collection
+   * back to FlightsPage so that:
+   *
+   * Hero
+   * Summary
+   *
+   * can display accurate statistics.
+   */
+  onFlightsChange?: (
+    flights: Flight[]
+  ) => void;
 }
 
 /* ============================================================
@@ -60,6 +76,7 @@ export default function FlightList({
   search,
   status,
   sort,
+  onFlightsChange,
 }: FlightListProps) {
 
   /* ==========================================================
@@ -73,9 +90,8 @@ export default function FlightList({
     useState(true);
 
   /*
-   * Used only when a specific trip is selected.
-   *
-   * When "All Trips" is selected this will be null.
+   * Used when a specific trip
+   * is selected.
    */
   const [tripDetails, setTripDetails] =
     useState<any>(null);
@@ -129,7 +145,9 @@ export default function FlightList({
     selectedFlight: any
   ): number | null => {
 
-    if (!selectedFlight) {
+    if (
+      !selectedFlight
+    ) {
       return null;
     }
 
@@ -155,13 +173,6 @@ export default function FlightList({
 
   /* ============================================================
      GET FLIGHT TYPE
-
-     Priority:
-
-     1. flight.flight_type
-     2. flight.type
-     3. route comparison
-     4. OUTBOUND fallback
   ============================================================ */
 
   const getFlightType = (
@@ -209,9 +220,7 @@ export default function FlightList({
     }
 
     /* ----------------------------------------------------------
-       3. Route-based fallback
-
-       Only possible when a specific trip is selected.
+       3. Route fallback
     ---------------------------------------------------------- */
 
     const sourceIata =
@@ -233,7 +242,9 @@ export default function FlightList({
         flight.destination_iata ===
           sourceIata;
 
-      if (isReturn) {
+      if (
+        isReturn
+      ) {
         return "RETURN";
       }
 
@@ -243,19 +254,37 @@ export default function FlightList({
         flight.destination_iata ===
           destinationIata;
 
-      if (isOutbound) {
+      if (
+        isOutbound
+      ) {
         return "OUTBOUND";
       }
     }
 
     /*
-     * If the backend doesn't provide flight_type and
-     * we're viewing All Trips, there is no reliable way
-     * to know the direction across different trips.
-     *
-     * Default to OUTBOUND.
+     * Default.
      */
     return "OUTBOUND";
+  };
+
+  /* ============================================================
+     SET FLIGHTS
+
+     Keeps local state and page statistics
+     synchronized.
+  ============================================================ */
+
+  const updateFlights = (
+    updatedFlights: Flight[]
+  ) => {
+
+    setFlights(
+      updatedFlights
+    );
+
+    onFlightsChange?.(
+      updatedFlights
+    );
   };
 
   /* ============================================================
@@ -266,22 +295,12 @@ export default function FlightList({
 
     try {
 
-      setLoading(true);
+      setLoading(
+        true
+      );
 
       /* ========================================================
          ALL TRIPS
-         
-         tripId === null means:
-         
-         Filter = "All Trips"
-         
-         We must NOT call:
-         
-         getTrip(null)
-         
-         and we must NOT send:
-         
-         trip: NaN
       ======================================================== */
 
       if (
@@ -289,11 +308,11 @@ export default function FlightList({
       ) {
 
         const flightData =
-          await getFlights({});
+          await getFlights();
 
         /*
          * There is no single selected flight
-         * when viewing all trips.
+         * in All Trips mode.
          */
         setSelectedFlightId(
           null
@@ -304,10 +323,12 @@ export default function FlightList({
         );
 
         /*
-         * Sort outbound before return.
+         * Sort:
          *
-         * Within the same type, sort by
-         * departure date.
+         * OUTBOUND
+         * RETURN
+         *
+         * Then departure date.
          */
         const sortedFlights =
           [...flightData].sort(
@@ -325,10 +346,9 @@ export default function FlightList({
                   null
                 );
 
-              /* OUTBOUND FIRST */
-
               if (
-                typeA !== typeB
+                typeA !==
+                typeB
               ) {
 
                 return (
@@ -338,8 +358,6 @@ export default function FlightList({
                     : 1
                 );
               }
-
-              /* SAME TYPE → DATE */
 
               return (
                 new Date(
@@ -352,7 +370,7 @@ export default function FlightList({
             }
           );
 
-        setFlights(
+        updateFlights(
           sortedFlights
         );
 
@@ -367,6 +385,7 @@ export default function FlightList({
         flightData,
         trip,
       ] = await Promise.all([
+
         getFlights({
           trip: tripId,
         }),
@@ -374,11 +393,8 @@ export default function FlightList({
         getTrip(
           tripId
         ),
-      ]);
 
-      /* --------------------------------------------------------
-         Store trip details
-      -------------------------------------------------------- */
+      ]);
 
       setTripDetails(
         trip
@@ -398,13 +414,7 @@ export default function FlightList({
       );
 
       /* --------------------------------------------------------
-         SORT
-
-         OUTBOUND
-             ↓
-         RETURN
-
-         Then chronological date.
+         Sort
       -------------------------------------------------------- */
 
       const sortedFlights =
@@ -423,10 +433,12 @@ export default function FlightList({
                 trip
               );
 
-            /* OUTBOUND FIRST */
-
+            /*
+             * OUTBOUND FIRST
+             */
             if (
-              typeA !== typeB
+              typeA !==
+              typeB
             ) {
 
               return (
@@ -437,8 +449,10 @@ export default function FlightList({
               );
             }
 
-            /* SAME TYPE */
-
+            /*
+             * Same type:
+             * chronological order.
+             */
             return (
               new Date(
                 a.departure_datetime
@@ -450,7 +464,7 @@ export default function FlightList({
           }
         );
 
-      setFlights(
+      updateFlights(
         sortedFlights
       );
 
@@ -465,30 +479,28 @@ export default function FlightList({
         "Failed to load flights."
       );
 
+      updateFlights([]);
+
     } finally {
 
-      setLoading(false);
+      setLoading(
+        false
+      );
 
     }
   };
 
   /* ============================================================
      LOAD WHEN TRIP CHANGES
-
-     This runs for:
-
-     null → All Trips
-
-     1 → Trip 1
-
-     2 → Trip 2
   ============================================================ */
 
   useEffect(() => {
 
     fetchFlights();
 
-  }, [tripId]);
+  }, [
+    tripId,
+  ]);
 
   /* ============================================================
      VIEW FLIGHT
@@ -575,7 +587,6 @@ export default function FlightList({
         setSelectedFlightId(
           null
         );
-
       }
 
       setDeleteOpen(
@@ -634,24 +645,19 @@ export default function FlightList({
 
   /* ============================================================
      SELECT FLIGHT
-     
-     IMPORTANT:
-     
-     Selection is allowed only when a specific trip
-     is selected.
-     
-     When viewing "All Trips", there is no trip ID
-     available for selectFlight().
+
+     Selection is only available when
+     a specific trip is selected.
   ============================================================ */
 
   const handleSelect = async (
     flight: Flight
   ) => {
 
-    /* ----------------------------------------------------------
-       ALL TRIPS
-    ---------------------------------------------------------- */
-
+    /*
+     * Cannot select a flight while
+     * viewing All Trips.
+     */
     if (
       tripId === null
     ) {
@@ -663,17 +669,14 @@ export default function FlightList({
       return;
     }
 
-    /* ----------------------------------------------------------
-       Already selected
-    ---------------------------------------------------------- */
-
+    /*
+     * Already selected.
+     */
     if (
       flight.id ===
       selectedFlightId
     ) {
-
       return;
-
     }
 
     try {
@@ -703,6 +706,12 @@ export default function FlightList({
         null
       );
 
+      /*
+       * Refresh both:
+       *
+       * FlightList
+       * FlightsPage statistics
+       */
       await fetchFlights();
 
     } catch (error) {
@@ -728,12 +737,13 @@ export default function FlightList({
      LOADING
   ============================================================ */
 
-  if (loading) {
+  if (
+    loading
+  ) {
 
     return (
       <FlightSkeleton />
     );
-
   }
 
   /* ============================================================
@@ -753,9 +763,7 @@ export default function FlightList({
           if (
             !search.trim()
           ) {
-
             return true;
-
           }
 
           const query =
@@ -765,28 +773,35 @@ export default function FlightList({
 
             flight.airline_name
               .toLowerCase()
-              .includes(query)
+              .includes(
+                query
+              )
 
             ||
 
             flight.flight_number
               .toLowerCase()
-              .includes(query)
+              .includes(
+                query
+              )
 
             ||
 
             flight.source_iata
               .toLowerCase()
-              .includes(query)
+              .includes(
+                query
+              )
 
             ||
 
             flight.destination_iata
               .toLowerCase()
-              .includes(query)
+              .includes(
+                query
+              )
 
           );
-
         }
       )
 
@@ -801,30 +816,25 @@ export default function FlightList({
             status ===
             "all"
           ) {
-
             return true;
-
           }
 
           return (
-
             flight.status
               .toLowerCase() ===
             status.toLowerCase()
-
           );
-
         }
       )
 
       /* ========================================================
          SORT
-         
+
          Priority:
 
          1. OUTBOUND
          2. RETURN
-         3. User-selected sorting
+         3. Selected sorting
       ======================================================== */
 
       .sort(
@@ -842,12 +852,12 @@ export default function FlightList({
               tripDetails
             );
 
-          /* ----------------------------------------------------
-             OUTBOUND FIRST
-          ---------------------------------------------------- */
-
+          /*
+           * OUTBOUND FIRST
+           */
           if (
-            typeA !== typeB
+            typeA !==
+            typeB
           ) {
 
             return (
@@ -856,13 +866,11 @@ export default function FlightList({
                 ? -1
                 : 1
             );
-
           }
 
-          /* ----------------------------------------------------
-             SORT INSIDE SAME TYPE
-          ---------------------------------------------------- */
-
+          /*
+           * Sort inside each group.
+           */
           switch (
             sort
           ) {
@@ -909,9 +917,7 @@ export default function FlightList({
                   a.departure_datetime
                 ).getTime()
               );
-
           }
-
         }
       );
 
@@ -927,7 +933,6 @@ export default function FlightList({
     return (
       <EmptyFlights />
     );
-
   }
 
   /* ============================================================
@@ -973,13 +978,9 @@ export default function FlightList({
               }
 
               /*
-               * IMPORTANT:
-               *
-               * We intentionally do NOT pass onSelect
-               * to FlightCard.
-               *
-               * Therefore the Select Flight button
-               * will remain removed from FlightCard.
+               * Select Flight button was
+               * intentionally removed from
+               * FlightCard.
                */
             />
 
@@ -989,7 +990,7 @@ export default function FlightList({
       </div>
 
       {/* ======================================================
-          FLIGHT DETAILS MODAL
+          DETAILS MODAL
       ====================================================== */}
 
       <FlightDetailsModal
@@ -1023,10 +1024,9 @@ export default function FlightList({
         }}
 
         /*
-         * Selection is only available when a
+         * Select Flight remains available
+         * from the Details modal when a
          * specific trip is selected.
-         *
-         * All Trips → no selection action.
          */
         onSelect={
           tripId !== null
@@ -1049,7 +1049,7 @@ export default function FlightList({
       />
 
       {/* ======================================================
-          EDIT FLIGHT MODAL
+          EDIT MODAL
       ====================================================== */}
 
       <EditFlightModal
@@ -1091,7 +1091,7 @@ export default function FlightList({
       />
 
       {/* ======================================================
-          BOARDING PASS MODAL
+          BOARDING PASS
       ====================================================== */}
 
       <BoardingPassModal
@@ -1146,9 +1146,7 @@ export default function FlightList({
           if (
             deleting
           ) {
-
             return;
-
           }
 
           setDeleteOpen(
